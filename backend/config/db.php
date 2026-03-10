@@ -1,7 +1,7 @@
 <?php
     //file per connettersi al database
     $host = "localhost";
-    $dbname = "Evently"; // <-- il nome del tuo database
+    $dbname = "evently"; // <-- il nome del tuo database
     $user = "root";
     $pass = "";
 

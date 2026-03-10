@@ -10,26 +10,27 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import BASE_URL from "../config/api";
 
 const { width } = Dimensions.get("window");
 
-const API_URL = `${BASE_URL}/login.php`;
+const API_URL = `${BASE_URL}/register.php`;
 
-export default function Login() {
+export default function Register() {
   const router = useRouter();
 
+  const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [tipo, setTipo] = useState("privato"); // default: utente normale
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleLogin() {
-    // Controllo campi vuoti
-    if (!email || !password) {
-      setError("Inserisci email e password");
+  async function handleRegister() {
+    if (!nome || !email || !password) {
+      setError("Compila tutti i campi");
       return;
     }
 
@@ -43,18 +44,19 @@ export default function Login() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          Nome: nome,
           Email: email,
           PasswordUtente: password,
+          tipo: tipo,
         }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        // Login riuscito → vai alla home
-        router.replace("/home");
+        // Registrazione riuscita → vai al login
+        router.replace("/login");
       } else {
-        // Mostra il messaggio di errore dal backend
         setError(data.message);
       }
     } catch (e) {
@@ -80,11 +82,22 @@ export default function Login() {
         <View style={styles.header}>
           <Text style={styles.title}>EVENTLY</Text>
           <View style={styles.titleUnderline} />
-          <Text style={styles.subtitle}>Accedi al tuo account</Text>
+          <Text style={styles.subtitle}>Crea il tuo account</Text>
         </View>
 
         {/* Form */}
         <View style={styles.form}>
+
+          {/* Campo Nome */}
+          <Text style={styles.label}>NOME</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="il tuo nome"
+            placeholderTextColor="#555"
+            value={nome}
+            onChangeText={setNome}
+            autoCapitalize="words"
+          />
 
           {/* Campo Email */}
           <Text style={styles.label}>EMAIL</Text>
@@ -102,34 +115,56 @@ export default function Login() {
           <Text style={styles.label}>PASSWORD</Text>
           <TextInput
             style={styles.input}
-            placeholder="la tua password"
+            placeholder="scegli una password"
             placeholderTextColor="#555"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
           />
 
+          {/* Selezione tipo account */}
+          <Text style={styles.label}>TIPO ACCOUNT</Text>
+          <View style={styles.tipoContainer}>
+            <TouchableOpacity
+              style={[styles.tipoButton, tipo === "privato" && styles.tipoSelected]}
+              onPress={() => setTipo("privato")}
+            >
+              <Text style={[styles.tipoText, tipo === "privato" && styles.tipoTextSelected]}>
+                PRIVATO
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.tipoButton, tipo === "locale" && styles.tipoSelected]}
+              onPress={() => setTipo("locale")}
+            >
+              <Text style={[styles.tipoText, tipo === "locale" && styles.tipoTextSelected]}>
+                LOCALE
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Messaggio di errore */}
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
-          {/* Bottone Login */}
+          {/* Bottone Registrati */}
           <TouchableOpacity
             style={styles.button}
-            onPress={handleLogin}
+            onPress={handleRegister}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#0a0a0a" />
             ) : (
-              <Text style={styles.buttonText}>ACCEDI</Text>
+              <Text style={styles.buttonText}>REGISTRATI</Text>
             )}
           </TouchableOpacity>
 
-          {/* Link registrazione */}
-          <TouchableOpacity onPress={() => router.push("/register")}>
+          {/* Link login */}
+          <TouchableOpacity onPress={() => router.push("/login")}>
             <Text style={styles.link}>
-              Non hai un account?{" "}
-              <Text style={styles.linkBold}>Registrati</Text>
+              Hai già un account?{" "}
+              <Text style={styles.linkBold}>Accedi</Text>
             </Text>
           </TouchableOpacity>
 
@@ -207,6 +242,30 @@ const styles = StyleSheet.create({
     fontSize: 15,
     paddingVertical: 12,
     paddingHorizontal: 4,
+  },
+  tipoContainer: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 8,
+  },
+  tipoButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: "#333",
+    alignItems: "center",
+  },
+  tipoSelected: {
+    borderColor: "#c9b99a",
+    backgroundColor: "#c9b99a22",
+  },
+  tipoText: {
+    color: "#555",
+    fontSize: 10,
+    letterSpacing: 3,
+  },
+  tipoTextSelected: {
+    color: "#c9b99a",
   },
   error: {
     color: "#e07070",
