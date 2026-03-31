@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   ActivityIndicator,
   Dimensions,
@@ -52,6 +53,8 @@ export default function Login() {
 
       if (data.success) {
         // Login riuscito → vai alla home
+        await AsyncStorage.setItem("IDUtente", String(data.IDUtente));
+        await AsyncStorage.setItem("tipo", data.tipo);
         router.replace("/home");
       } else {
         // Mostra il messaggio di errore dal backend

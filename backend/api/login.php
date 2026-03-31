@@ -4,7 +4,6 @@
     header("Access-Control-Allow-Methods: POST, OPTIONS");
     header("Content-Type: application/json");
 
-    // Gestione preflight
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
         http_response_code(200);
         exit;
@@ -28,9 +27,17 @@
     try {
 
         $stm = $pdo->prepare("
-            SELECT ID, PasswordUtente 
-            FROM Utente 
-            WHERE Email = :email
+            SELECT u.ID, u.PasswordUtente,
+                CASE 
+                    WHEN p.ID IS NOT NULL THEN 'privato'
+                    WHEN l.ID IS NOT NULL THEN 'locale'
+                    WHEN a.ID IS NOT NULL THEN 'admin'
+                END AS tipo
+            FROM Utente u
+            LEFT JOIN Privato p ON p.IDUtente = u.ID
+            LEFT JOIN Locale l ON l.IDUtente = u.ID
+            LEFT JOIN Admin a ON a.IDUtente = u.ID
+            WHERE u.Email = :email
         ");
 
         $stm->bindValue(":email", $email);
@@ -47,28 +54,23 @@
         }
 
         if(password_verify($password, $user["PasswordUtente"])) {
-
             echo json_encode([
                 "success" => true,
                 "message" => "Login riuscito",
-                "IDUtente" => $user["ID"]
+                "IDUtente" => $user["ID"],
+                "tipo" => $user["tipo"]
             ]);
-
         } else {
-
             echo json_encode([
                 "success" => false,
                 "message" => "Password errata"
             ]);
-
         }
 
     } catch(PDOException $e) {
-
         echo json_encode([
             "success" => false,
             "message" => "Errore server"
         ]);
-
     }
 ?>
