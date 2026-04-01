@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS RichiestaEvento (
   DataEvento date NOT NULL,
   NumeroPartecipanti int(10) NOT NULL,
   Messaggio varchar(255),
-  Stato enum('in_attesa','approvato','rifiutato') DEFAULT 'in_attesa' NOT NULL,
+  Stato enum('in_attesa','approvato_admin','approvato','rifiutato') DEFAULT 'in_attesa' NOT NULL,
   IDLuogo int(10),
   IDPrivato int(10),
   FOREIGN KEY (IDLuogo) REFERENCES Luogo(ID)
