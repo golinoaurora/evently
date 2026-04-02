@@ -52,10 +52,15 @@ export default function Login() {
       const data = await response.json();
 
       if (data.success) {
-        // Login riuscito → vai alla home
         await AsyncStorage.setItem("IDUtente", String(data.IDUtente));
         await AsyncStorage.setItem("tipo", data.tipo);
-        router.replace("/home");
+        if (data.tipo === "admin") {
+            router.replace("/admin");
+        } else if (data.tipo === "locale") {
+            router.replace("/locale");
+        } else {
+            router.replace("/home");
+        }
       } else {
         // Mostra il messaggio di errore dal backend
         setError(data.message);
