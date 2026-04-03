@@ -21,6 +21,7 @@ const API_URL = `${BASE_URL}/register.php`;
 export default function Register() {
   const router = useRouter();
 
+  const [mostraPassword, setMostraPassword] = useState(false);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -131,14 +132,19 @@ export default function Register() {
 
           {/* Campo Password */}
           <Text style={styles.label}>PASSWORD</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="scegli una password"
-            placeholderTextColor="#555"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.inputPassword}
+              placeholder="la tua password"
+              placeholderTextColor="#555"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!mostraPassword}
+            />
+            <TouchableOpacity onPress={() => setMostraPassword(!mostraPassword)}>
+              <Text style={styles.mostraBtn}>{mostraPassword ? "NASCONDI" : "MOSTRA"}</Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Selezione tipo account */}
           <Text style={styles.label}>TIPO ACCOUNT</Text>
@@ -313,5 +319,23 @@ const styles = StyleSheet.create({
   linkBold: {
     color: "#c9b99a",
     fontWeight: "600",
+  },
+  passwordContainer: {
+  flexDirection: "row",
+  alignItems: "center",
+  borderBottomWidth: 1,
+  borderBottomColor: "#333",
+  },
+  inputPassword: {
+    flex: 1,
+    color: "#ffffff",
+    fontSize: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+  },
+  mostraBtn: {
+    color: "#c9b99a",
+    fontSize: 9,
+    letterSpacing: 2,
   },
 });

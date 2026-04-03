@@ -3,7 +3,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Dimensions,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,8 +10,6 @@ import {
   View,
 } from "react-native";
 import BASE_URL from "../config/api";
-
-const { width } = Dimensions.get("window");
 
 export default function EventDetail() {
   const [preferito, setPreferito] = useState(false);
@@ -24,11 +21,14 @@ export default function EventDetail() {
   const [error, setError] = useState("");
   const [tipo, setTipo] = useState("");
   const [messaggio, setMessaggio] = useState("");
+  const [isOrganizzatore, setIsOrganizzatore] = useState(false);
+  const [partecipanti, setPartecipanti] = useState([]);
 
   useEffect(() => {
     caricaTipo();
     caricaEvento();
     caricaPreferito();
+    caricaPartecipanti();
   }, []);
 
   async function handlePreferito() {
@@ -62,6 +62,10 @@ export default function EventDetail() {
       const data = await response.json();
       if (data.success) {
         setEvento(data.evento);
+        const IDPrivato = await AsyncStorage.getItem("IDPrivato");
+        if (data.evento.IDPrivato && String(data.evento.IDPrivato) === IDPrivato) {
+          setIsOrganizzatore(true);
+        }
       } else {
         setError("Evento non trovato");
       }
@@ -71,7 +75,6 @@ export default function EventDetail() {
       setLoading(false);
     }
   }
-
   async function caricaPreferito() {
     try {
       const IDUtente = await AsyncStorage.getItem("IDUtente");
@@ -84,7 +87,7 @@ export default function EventDetail() {
       console.log("Errore controllo preferito");
     }
   }
-
+ 
   async function handlePartecipa() {
     try {
       const IDUtente = await AsyncStorage.getItem("IDUtente");
@@ -100,6 +103,17 @@ export default function EventDetail() {
       setMessaggio(data.message);
     } catch (e) {
       setMessaggio("Errore di connessione.");
+    }
+  }
+   async function caricaPartecipanti() {
+    try {
+      const response = await fetch(`${BASE_URL}/partecipanti-evento.php?IDEvento=${id}`);
+      const data = await response.json();
+      if (data.success) {
+        setPartecipanti(data.partecipanti);
+      }
+    } catch (e) {
+      console.log("Errore caricamento partecipanti");
     }
   }
 
@@ -118,12 +132,10 @@ export default function EventDetail() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
 
-      {/* Bottone indietro */}
       <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
         <Text style={styles.backText}>← INDIETRO</Text>
       </TouchableOpacity>
 
-      {/* Data e ora */}
       <View style={styles.dataBox}>
         <Text style={styles.data}>
           {new Date(evento.DataEvento).toLocaleDateString("it-IT", {
@@ -136,24 +148,17 @@ export default function EventDetail() {
         <Text style={styles.ora}>{evento.Ora.slice(0, 5)}</Text>
       </View>
 
-      {/* Linea decorativa */}
       <View style={styles.linea} />
 
-      {/* Titolo */}
       <Text style={styles.titolo}>{evento.Titolo}</Text>
-
-      {/* Luogo */}
       <Text style={styles.luogo}>📍 {evento.NomeLuogo}</Text>
       <Text style={styles.indirizzo}>{evento.Indirizzo}</Text>
 
-      {/* Linea decorativa */}
       <View style={styles.linea} />
 
-      {/* Descrizione */}
       <Text style={styles.descrizioneLabel}>DESCRIZIONE</Text>
       <Text style={styles.descrizione}>{evento.Descrizione}</Text>
 
-      {/* Info */}
       <View style={styles.infoRow}>
         <View style={styles.infoBox}>
           <Text style={styles.infoLabel}>PREZZO</Text>
@@ -162,15 +167,18 @@ export default function EventDetail() {
           </Text>
         </View>
         <View style={styles.infoBox}>
-          <Text style={styles.infoLabel}>MAX PARTECIPANTI</Text>
-          <Text style={styles.infoValue}>{evento.MaxPartecipanti}</Text>
+          <Text style={styles.infoLabel}>POSTI RIMANENTI</Text>
+          <Text style={[
+            styles.infoValue,
+            (evento.MaxPartecipanti - evento.Iscritti) <= 5 && { color: "#e07070" }
+          ]}>
+            {Math.max(0, evento.MaxPartecipanti - evento.Iscritti)} / {evento.MaxPartecipanti}
+          </Text>
         </View>
       </View>
 
-      {/* Messaggio feedback */}
       {messaggio ? <Text style={styles.messaggio}>{messaggio}</Text> : null}
 
-      {/* Preferito — solo per privati */}
       {tipo === "privato" && (
         <TouchableOpacity
           style={styles.preferitoBtn}
@@ -182,13 +190,55 @@ export default function EventDetail() {
         </TouchableOpacity>
       )}
 
-      {/* Bottone Partecipa — solo per privati */}
-      {tipo === "privato" && (
+      {tipo === "privato" && !isOrganizzatore && (
         <TouchableOpacity style={styles.button} onPress={handlePartecipa}>
           <Text style={styles.buttonText}>PARTECIPA</Text>
         </TouchableOpacity>
       )}
 
+      {tipo === "privato" && isOrganizzatore && (
+        <View>
+          <View style={styles.organizzatoreBox}>
+            <Text style={styles.organizzatoreText}>SEI L'ORGANIZZATORE DI QUESTO EVENTO</Text>
+          </View>
+
+          <View style={styles.partecipantiBox}>
+            <Text style={styles.partecipantiTitolo}>
+              PARTECIPANTI ({partecipanti.length})
+            </Text>
+            <View style={styles.linea} />
+            {partecipanti.length === 0 ? (
+              <Text style={styles.partecipantiEmpty}>Nessun partecipante ancora</Text>
+            ) : (
+              partecipanti.map((p, index) => (
+                <View key={index} style={styles.partecipanteRow}>
+                  <Text style={styles.partecipanteNome}>{p.Nome}</Text>
+                  <Text style={styles.partecipanteEmail}>{p.Email}</Text>
+                </View>
+              ))
+            )}
+          </View>
+        </View>
+      )}
+      {/* Lista partecipanti — solo per locale */}
+      {tipo === "locale" && (
+        <View style={styles.partecipantiBox}>
+          <Text style={styles.partecipantiTitolo}>
+            PARTECIPANTI ({partecipanti.length})
+          </Text>
+          <View style={styles.linea} />
+          {partecipanti.length === 0 ? (
+            <Text style={styles.partecipantiEmpty}>Nessun partecipante ancora</Text>
+          ) : (
+            partecipanti.map((p, index) => (
+              <View key={index} style={styles.partecipanteRow}>
+                <Text style={styles.partecipanteNome}>{p.Nome}</Text>
+                <Text style={styles.partecipanteEmail}>{p.Email}</Text>
+              </View>
+            ))
+          )}
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -290,6 +340,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     letterSpacing: 1,
   },
+  preferitoBtn: {
+    borderWidth: 1,
+    borderColor: "#c9b99a",
+    paddingVertical: 16,
+    alignItems: "center",
+    marginTop: 20,
+  },
+  preferitoText: {
+    color: "#c9b99a",
+    fontSize: 11,
+    letterSpacing: 3,
+  },
   button: {
     backgroundColor: "#c9b99a",
     paddingVertical: 16,
@@ -307,16 +369,49 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 40,
   },
-  preferitoBtn: {
+  organizzatoreBox: {
     borderWidth: 1,
     borderColor: "#c9b99a",
     paddingVertical: 16,
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 30,
   },
-  preferitoText: {
+  organizzatoreText: {
     color: "#c9b99a",
-    fontSize: 11,
+    fontSize: 10,
     letterSpacing: 3,
+  },
+  partecipantiBox: {
+  marginTop: 30,
+  borderWidth: 1,
+  borderColor: "#1a1a1a",
+  padding: 16,
+  },
+  partecipantiTitolo: {
+    color: "#c9b99a",
+    fontSize: 10,
+    letterSpacing: 3,
+    marginBottom: 12,
+  },
+  partecipantiEmpty: {
+    color: "#555",
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 10,
+  },
+  partecipanteRow: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#1a1a1a",
+  },
+  partecipanteNome: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "300",
+  },
+  partecipanteEmail: {
+    color: "#555",
+    fontSize: 11,
+    marginTop: 2,
   },
 });

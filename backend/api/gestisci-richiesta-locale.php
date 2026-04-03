@@ -39,9 +39,10 @@ try {
         $stm->execute();
         $richiesta = $stm->fetch(PDO::FETCH_ASSOC);
 
+        // Creiamo l'evento
         $stm = $pdo->prepare("
-            INSERT INTO Evento (Titolo, Descrizione, DataEvento, Ora, Prezzo, MaxPartecipanti, IDLuogo, IDLocale)
-            VALUES (:titolo, :desc, :data, '20:00:00', 0, :maxP, :luogo, :locale)
+            INSERT INTO Evento (Titolo, Descrizione, DataEvento, Ora, Prezzo, MaxPartecipanti, IDLuogo, IDLocale, IDPrivato)
+            VALUES (:titolo, :desc, :data, '20:00:00', 0, :maxP, :luogo, :locale, :privato)
         ");
         $stm->execute([
             ":titolo" => $richiesta["Titolo"],
@@ -50,6 +51,7 @@ try {
             ":maxP" => $richiesta["NumeroPartecipanti"],
             ":luogo" => $richiesta["IDLuogo"],
             ":locale" => $richiesta["IDLocale"],
+            ":privato" => $richiesta["IDPrivato"],
         ]);
     }
 

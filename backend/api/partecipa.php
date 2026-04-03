@@ -47,6 +47,22 @@ try {
         exit;
     }
 
+  // Controlliamo i posti disponibili
+    $stm = $pdo->prepare("
+        SELECT e.MaxPartecipanti, COUNT(p.ID) AS Iscritti
+        FROM Evento e
+        LEFT JOIN Partecipare p ON p.IDEvento = e.ID
+        WHERE e.ID = :id
+        GROUP BY e.ID
+    ");
+    $stm->bindValue(":id", $IDEvento);
+    $stm->execute();
+    $info = $stm->fetch(PDO::FETCH_ASSOC);
+
+    if($info && $info["Iscritti"] >= $info["MaxPartecipanti"]) {
+        echo json_encode(["success" => false, "message" => "Evento al completo!"]);
+        exit;
+    }
     // Iscrizione
     $stm = $pdo->prepare("
         INSERT INTO Partecipare (DataIscrizione, IDEvento, IDPrivato)

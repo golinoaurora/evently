@@ -21,11 +21,14 @@ if(!$id) {
 try {
     $stm = $pdo->prepare("
         SELECT e.ID, e.Titolo, e.Descrizione, e.DataEvento,
-               e.Ora, e.Prezzo, e.MaxPartecipanti,
-               l.Nome AS NomeLuogo, l.Indirizzo
+            e.Ora, e.Prezzo, e.MaxPartecipanti, e.IDPrivato,
+            l.Nome AS NomeLuogo, l.Indirizzo,
+            COUNT(DISTINCT p.ID) AS Iscritti
         FROM Evento e
         JOIN Luogo l ON l.ID = e.IDLuogo
+        LEFT JOIN Partecipare p ON p.IDEvento = e.ID
         WHERE e.ID = :id
+        GROUP BY e.ID
     ");
 
     $stm->bindValue(":id", $id);

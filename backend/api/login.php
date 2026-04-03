@@ -32,7 +32,8 @@ try {
                 WHEN p.ID IS NOT NULL THEN 'privato'
                 WHEN l.ID IS NOT NULL THEN 'locale'
                 WHEN a.ID IS NOT NULL THEN 'admin'
-            END AS tipo
+            END AS tipo,
+            p.ID AS IDPrivato
         FROM Utente u
         LEFT JOIN Privato p ON p.IDUtente = u.ID
         LEFT JOIN Locale l ON l.IDUtente = u.ID
@@ -58,7 +59,8 @@ try {
             "success" => true,
             "message" => "Login riuscito",
             "IDUtente" => $user["ID"],
-            "tipo" => $user["tipo"]
+            "tipo" => $user["tipo"],
+            "IDPrivato" => $user["IDPrivato"],
         ]);
     } else {
         echo json_encode([

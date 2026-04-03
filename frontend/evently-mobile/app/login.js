@@ -22,6 +22,7 @@ const API_URL = `${BASE_URL}/login.php`;
 export default function Login() {
   const router = useRouter();
 
+  const [mostraPassword, setMostraPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -54,6 +55,7 @@ export default function Login() {
       if (data.success) {
         await AsyncStorage.setItem("IDUtente", String(data.IDUtente));
         await AsyncStorage.setItem("tipo", data.tipo);
+        await AsyncStorage.setItem("IDPrivato", String(data.IDPrivato ?? ""));
         if (data.tipo === "admin") {
             router.replace("/admin");
         } else if (data.tipo === "locale") {
@@ -65,6 +67,7 @@ export default function Login() {
         // Mostra il messaggio di errore dal backend
         setError(data.message);
       }
+
     } catch (e) {
       setError("Errore di connessione. Controlla il server.");
     } finally {
@@ -108,14 +111,19 @@ export default function Login() {
 
           {/* Campo Password */}
           <Text style={styles.label}>PASSWORD</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="la tua password"
-            placeholderTextColor="#555"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+          <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.inputPassword}
+                placeholder="la tua password"
+                placeholderTextColor="#555"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!mostraPassword}
+              />
+              <TouchableOpacity onPress={() => setMostraPassword(!mostraPassword)}>
+                <Text style={styles.mostraBtn}>{mostraPassword ? "NASCONDI" : "MOSTRA"}</Text>
+              </TouchableOpacity>
+          </View>
 
           {/* Messaggio di errore */}
           {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -244,5 +252,23 @@ const styles = StyleSheet.create({
   linkBold: {
     color: "#c9b99a",
     fontWeight: "600",
+  },
+  passwordContainer: {
+  flexDirection: "row",
+  alignItems: "center",
+  borderBottomWidth: 1,
+  borderBottomColor: "#333",
+  },
+  inputPassword: {
+    flex: 1,
+    color: "#ffffff",
+    fontSize: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+  },
+  mostraBtn: {
+    color: "#c9b99a",
+    fontSize: 9,
+    letterSpacing: 2,
   },
 });
