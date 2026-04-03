@@ -104,13 +104,23 @@ export default function Profile() {
       )}
 
       {tipo === "locale" && (
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => router.push("/locale")}
-        >
-          <Text style={styles.menuItemText}>GESTISCI RICHIESTE</Text>
-          <Text style={styles.menuItemArrow}>→</Text>
-        </TouchableOpacity>
+        <>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push("/locale")}
+          >
+            <Text style={styles.menuItemText}>GESTISCI RICHIESTE</Text>
+            <Text style={styles.menuItemArrow}>→</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push("/miei-eventi")}
+          >
+            <Text style={styles.menuItemText}>I MIEI EVENTI</Text>
+            <Text style={styles.menuItemArrow}>→</Text>
+          </TouchableOpacity>
+        </>
       )}
 
       {tipo === "admin" && (

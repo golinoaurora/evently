@@ -34,6 +34,24 @@ export default function Register() {
       return;
     }
 
+      // Validazione email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Inserisci un'email valida");
+      return;
+    }
+
+    // Validazione password — tutti gli errori insieme
+    const erroriPassword = [];
+    if (password.length < 8) erroriPassword.push("almeno 8 caratteri");
+    if (!/[A-Z]/.test(password)) erroriPassword.push("una lettera maiuscola");
+    if (!/[0-9]/.test(password)) erroriPassword.push("un numero");
+    if (!/[!@#$%^&*]/.test(password)) erroriPassword.push("un carattere speciale (!@#$%^&*)");
+
+    if (erroriPassword.length > 0) {
+      setError("La password deve contenere: " + erroriPassword.join(", "));
+      return;
+    }
     setLoading(true);
     setError("");
 

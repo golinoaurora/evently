@@ -30,6 +30,14 @@ export default function CreateEvent() {
   const [numPartecipanti, setNumPartecipanti] = useState("");
   const [messaggio2, setMessaggio2] = useState("");
   const [luogoScelto, setLuogoScelto] = useState(null);
+  const [titoloLocale, setTitoloLocale] = useState("");
+  const [descrizioneLocale, setDescrizioneLocale] = useState("");
+  const [dataLocale, setDataLocale] = useState("");
+  const [oraLocale, setOraLocale] = useState("");
+  const [prezzoLocale, setPrezzoLocale] = useState("");
+  const [maxPartecipantiLocale, setMaxPartecipantiLocale] = useState("");
+  const [loadingLocale, setLoadingLocale] = useState(false);
+  const [messaggioLocale, setMessaggioLocale] = useState("");
 
   useEffect(() => {
     caricaTipo();
@@ -101,18 +109,176 @@ export default function CreateEvent() {
   // Se è un locale, mostra pagina diversa
   if (tipo === "locale") {
     return (
-      <View style={styles.container}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={styles.backText}>← INDIETRO</Text>
-        </TouchableOpacity>
-        <Text style={styles.titoloPagina}>CREA EVENTO</Text>
-        <View style={styles.linea} />
-        <Text style={styles.subtitle}>
-          Funzionalità per i locali — disponibile a breve!
-        </Text>
-      </View>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+        >
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+            <Text style={styles.backText}>← INDIETRO</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.titoloPagina}>CREA EVENTO</Text>
+          <View style={styles.linea} />
+          <Text style={styles.subtitle}>
+            Crea un evento direttamente nel tuo locale.
+          </Text>
+
+          <Text style={styles.label}>TITOLO EVENTO</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="es. Serata Jazz"
+            placeholderTextColor="#555"
+            value={titoloLocale}
+            onChangeText={setTitoloLocale}
+          />
+
+          <Text style={styles.label}>DESCRIZIONE</Text>
+          <TextInput
+            style={[styles.input, styles.inputMultiline]}
+            placeholder="Descrivi l'evento..."
+            placeholderTextColor="#555"
+            value={descrizioneLocale}
+            onChangeText={setDescrizioneLocale}
+            multiline
+            numberOfLines={4}
+          />
+
+          <Text style={styles.label}>DATA (AAAA-MM-GG)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="es. 2026-06-15"
+            placeholderTextColor="#555"
+            value={dataLocale}
+            onChangeText={setDataLocale}
+            keyboardType="numeric"
+          />
+
+          <Text style={styles.label}>ORA (HH:MM)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="es. 21:00"
+            placeholderTextColor="#555"
+            value={oraLocale}
+            onChangeText={setOraLocale}
+            keyboardType="numeric"
+          />
+
+          <Text style={styles.label}>PREZZO (€)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="es. 10 (0 se gratuito)"
+            placeholderTextColor="#555"
+            value={prezzoLocale}
+            onChangeText={setPrezzoLocale}
+            keyboardType="numeric"
+          />
+
+          <Text style={styles.label}>MAX PARTECIPANTI</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="es. 100"
+            placeholderTextColor="#555"
+            value={maxPartecipantiLocale}
+            onChangeText={setMaxPartecipantiLocale}
+            keyboardType="numeric"
+          />
+
+          {/* Selezione luogo */}
+          <Text style={styles.label}>SCEGLI IL TUO LUOGO</Text>
+          {loadingLuoghi ? (
+            <ActivityIndicator color="#c9b99a" />
+          ) : (
+            luoghi.map((luogo) => (
+              <TouchableOpacity
+                key={luogo.ID}
+                style={[
+                  styles.luogoBtn,
+                  luogoScelto === luogo.ID && styles.luogoBtnSelected,
+                ]}
+                onPress={() => setLuogoScelto(luogo.ID)}
+              >
+                <Text style={[
+                  styles.luogoNome,
+                  luogoScelto === luogo.ID && styles.luogoNomeSelected,
+                ]}>
+                  {luogo.Nome}
+                </Text>
+                <Text style={styles.luogoIndirizzo}>{luogo.Indirizzo}</Text>
+              </TouchableOpacity>
+            ))
+          )}
+
+          {errore ? <Text style={styles.error}>{errore}</Text> : null}
+          {messaggioLocale ? <Text style={styles.success}>{messaggioLocale}</Text> : null}
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleCreaEvento}
+            disabled={loadingLocale}
+          >
+            {loadingLocale ? (
+              <ActivityIndicator color="#0a0a0a" />
+            ) : (
+              <Text style={styles.buttonText}>CREA EVENTO</Text>
+            )}
+          </TouchableOpacity>
+
+        </ScrollView>
+      </KeyboardAvoidingView>
     );
   }
+
+  async function handleCreaEvento() {
+  if (!titoloLocale || !descrizioneLocale || !dataLocale || !oraLocale || !prezzoLocale || !maxPartecipantiLocale || !luogoScelto) {
+    setErrore("Compila tutti i campi e scegli un luogo");
+    return;
+  }
+
+  setLoadingLocale(true);
+  setErrore("");
+
+  try {
+    const IDUtente = await AsyncStorage.getItem("IDUtente");
+    const response = await fetch(`${BASE_URL}/crea-evento-locale.php`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        Titolo: titoloLocale,
+        Descrizione: descrizioneLocale,
+        DataEvento: dataLocale,
+        Ora: oraLocale,
+        Prezzo: prezzoLocale,
+        MaxPartecipanti: maxPartecipantiLocale,
+        IDLuogo: luogoScelto,
+        IDUtente: IDUtente,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+          setMessaggioLocale("Evento creato con successo!");
+          setTitoloLocale("");
+          setDescrizioneLocale("");
+          setDataLocale("");
+          setOraLocale("");
+          setPrezzoLocale("");
+          setMaxPartecipantiLocale("");
+          setLuogoScelto(null);
+        } else {
+          setErrore(result.message);
+        }
+      } catch (e) {
+        setErrore("Errore di connessione.");
+      } finally {
+        setLoadingLocale(false);
+      }
+    }
 
   return (
     <KeyboardAvoidingView
