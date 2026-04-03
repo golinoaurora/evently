@@ -15,6 +15,7 @@ import BASE_URL from "../config/api";
 const { width } = Dimensions.get("window");
 
 export default function EventDetail() {
+  const [preferito, setPreferito] = useState(false);
   const router = useRouter();
   const { id } = useLocalSearchParams();
 
@@ -27,7 +28,28 @@ export default function EventDetail() {
   useEffect(() => {
     caricaTipo();
     caricaEvento();
+    caricaPreferito();
   }, []);
+
+  async function handlePreferito() {
+    try {
+      const IDUtente = await AsyncStorage.getItem("IDUtente");
+      const response = await fetch(`${BASE_URL}/aggiungi-preferito.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          IDEvento: id,
+          IDUtente: IDUtente,
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPreferito(data.preferito);
+      }
+    } catch (e) {
+      console.log("Errore preferito");
+    }
+  }
 
   async function caricaTipo() {
     const t = await AsyncStorage.getItem("tipo");
@@ -47,6 +69,19 @@ export default function EventDetail() {
       setError("Errore di connessione.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function caricaPreferito() {
+    try {
+      const IDUtente = await AsyncStorage.getItem("IDUtente");
+      const response = await fetch(`${BASE_URL}/controlla-preferito.php?IDEvento=${id}&IDUtente=${IDUtente}`);
+      const data = await response.json();
+      if (data.success) {
+        setPreferito(data.preferito);
+      }
+    } catch (e) {
+      console.log("Errore controllo preferito");
     }
   }
 
@@ -134,6 +169,18 @@ export default function EventDetail() {
 
       {/* Messaggio feedback */}
       {messaggio ? <Text style={styles.messaggio}>{messaggio}</Text> : null}
+
+      {/* Preferito — solo per privati */}
+      {tipo === "privato" && (
+        <TouchableOpacity
+          style={styles.preferitoBtn}
+          onPress={handlePreferito}
+        >
+          <Text style={styles.preferitoText}>
+            {preferito ? "❤️ RIMUOVI DAI PREFERITI" : "🤍 AGGIUNGI AI PREFERITI"}
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {/* Bottone Partecipa — solo per privati */}
       {tipo === "privato" && (
@@ -259,5 +306,17 @@ const styles = StyleSheet.create({
     color: "#e07070",
     textAlign: "center",
     marginTop: 40,
+  },
+  preferitoBtn: {
+    borderWidth: 1,
+    borderColor: "#c9b99a",
+    paddingVertical: 16,
+    alignItems: "center",
+    marginTop: 20,
+  },
+  preferitoText: {
+    color: "#c9b99a",
+    fontSize: 11,
+    letterSpacing: 3,
   },
 });

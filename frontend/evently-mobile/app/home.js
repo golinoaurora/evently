@@ -93,11 +93,10 @@ export default function Home() {
         return dataEvento >= oggi && dataEvento <= fineSettimana;
       });
     } else if (filtroData === "mese") {
-      const fineMese = new Date(oggi);
-      fineMese.setDate(oggi.getDate() + 30);
       filtrati = filtrati.filter(e => {
         const dataEvento = new Date(e.DataEvento);
-        return dataEvento >= oggi && dataEvento <= fineMese;
+        return dataEvento.getMonth() === oggi.getMonth() &&
+              dataEvento.getFullYear() === oggi.getFullYear();
       });
     }
 

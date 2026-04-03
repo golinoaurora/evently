@@ -84,13 +84,23 @@ export default function Profile() {
 
       {/* Sezioni extra in base al tipo */}
       {tipo === "privato" && (
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => router.push("/mie-richieste")}
-        >
-          <Text style={styles.menuItemText}>LE MIE RICHIESTE</Text>
-          <Text style={styles.menuItemArrow}>→</Text>
-        </TouchableOpacity>
+        <>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push("/mie-richieste")}
+          >
+            <Text style={styles.menuItemText}>LE MIE RICHIESTE</Text>
+            <Text style={styles.menuItemArrow}>→</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push("/preferiti")}
+          >
+            <Text style={styles.menuItemText}>I MIEI PREFERITI</Text>
+            <Text style={styles.menuItemArrow}>→</Text>
+          </TouchableOpacity>
+        </>
       )}
 
       {tipo === "locale" && (

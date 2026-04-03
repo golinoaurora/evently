@@ -1,4 +1,4 @@
--- Active: 1769022209940@@127.0.0.1@3306@evently
+-- Active: 1768374861142@@127.0.0.1@3306@evently
 -- ========================================
 -- DATABASE EVENTLY
 -- ========================================
@@ -106,4 +106,12 @@ CREATE TABLE IF NOT EXISTS Partecipare (
   FOREIGN KEY (IDPrivato) REFERENCES Privato(ID)
     ON DELETE CASCADE
     ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Preferiti (
+  ID int(10) PRIMARY KEY AUTO_INCREMENT,
+  IDEvento int(10),
+  IDPrivato int(10),
+  FOREIGN KEY (IDEvento) REFERENCES Evento(ID) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (IDPrivato) REFERENCES Privato(ID) ON DELETE CASCADE ON UPDATE CASCADE
 );
