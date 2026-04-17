@@ -15,7 +15,7 @@ try {
     $stm = $pdo->prepare("
         SELECT e.ID, e.Titolo, e.Descrizione, e.DataEvento, 
                e.Ora, e.Prezzo, e.MaxPartecipanti,
-               l.Nome AS NomeLuogo, l.Indirizzo
+               l.Nome AS NomeLuogo, l.Via, l.NumeroCivico, l.Citta, l.CAP
         FROM Evento e
         JOIN Luogo l ON l.ID = e.IDLuogo
         ORDER BY e.DataEvento ASC

@@ -21,9 +21,9 @@ if(!$id) {
 try {
     $stm = $pdo->prepare("
         SELECT e.ID, e.Titolo, e.Descrizione, e.DataEvento,
-            e.Ora, e.Prezzo, e.MaxPartecipanti, e.IDPrivato,
-            l.Nome AS NomeLuogo, l.Indirizzo,
-            COUNT(DISTINCT p.ID) AS Iscritti
+               e.Ora, e.Prezzo, e.MaxPartecipanti, e.IDPrivato,
+               l.Nome AS NomeLuogo, l.Via, l.NumeroCivico, l.Citta, l.CAP,
+               COUNT(DISTINCT p.ID) AS Iscritti
         FROM Evento e
         JOIN Luogo l ON l.ID = e.IDLuogo
         LEFT JOIN Partecipare p ON p.IDEvento = e.ID
@@ -45,4 +45,3 @@ try {
 } catch(PDOException $e) {
     echo json_encode(["success" => false, "message" => "Errore server"]);
 }
-?>

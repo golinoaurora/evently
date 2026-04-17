@@ -57,11 +57,18 @@ export default function Login() {
         await AsyncStorage.setItem("tipo", data.tipo);
         await AsyncStorage.setItem("IDPrivato", String(data.IDPrivato ?? ""));
         if (data.tipo === "admin") {
-            router.replace("/admin");
+          router.replace("/admin");
         } else if (data.tipo === "locale") {
+          // Controlliamo se ha già un luogo
+          const response = await fetch(`${BASE_URL}/controlla-luogo.php?IDUtente=${data.IDUtente}`);
+          const luogoData = await response.json();
+          if (luogoData.haLuogo) {
             router.replace("/locale");
+          } else {
+            router.replace("/crea-luogo");
+          }
         } else {
-            router.replace("/home");
+          router.replace("/home");
         }
       } else {
         // Mostra il messaggio di errore dal backend

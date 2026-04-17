@@ -11,23 +11,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once("../config/db.php");
 
+$IDUtente = $_GET["IDUtente"] ?? null;
+
+if(!$IDUtente) {
+    echo json_encode(["success" => false, "message" => "IDUtente mancante"]);
+    exit;
+}
+
 try {
     $stm = $pdo->prepare("
-        SELECT l.ID, l.Nome, l.Via, l.NumeroCivico, l.Citta, l.CAP, l.Descrizione
-        FROM Luogo l
-        ORDER BY l.Nome ASC
+        SELECT l.ID FROM Luogo l
+        JOIN Locale loc ON loc.ID = l.IDLocale
+        WHERE loc.IDUtente = :IDUtente
     ");
+    $stm->bindValue(":IDUtente", $IDUtente);
     $stm->execute();
-    $luoghi = $stm->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode([
         "success" => true,
-        "luoghi" => $luoghi
+        "haLuogo" => $stm->rowCount() > 0
     ]);
 
 } catch(PDOException $e) {
-    echo json_encode([
-        "success" => false,
-        "message" => "Errore server"
-    ]);
+    echo json_encode(["success" => false, "message" => "Errore server"]);
 }

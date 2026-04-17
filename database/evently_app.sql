@@ -49,7 +49,10 @@ CREATE TABLE IF NOT EXISTS Admin (
 CREATE TABLE IF NOT EXISTS Luogo (
   ID int(10) PRIMARY KEY AUTO_INCREMENT,
   Nome varchar(255) NOT NULL,
-  Indirizzo varchar(255) NOT NULL,
+  Via varchar(255) NOT NULL,
+  NumeroCivico varchar(10) NOT NULL,
+  Citta varchar(255) NOT NULL,
+  CAP varchar(5) NOT NULL,
   Descrizione varchar(255) NOT NULL,
   IDLocale int(10),
   FOREIGN KEY (IDLocale) REFERENCES Locale(ID)

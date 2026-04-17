@@ -75,6 +75,7 @@ export default function EventDetail() {
       setLoading(false);
     }
   }
+
   async function caricaPreferito() {
     try {
       const IDUtente = await AsyncStorage.getItem("IDUtente");
@@ -87,7 +88,7 @@ export default function EventDetail() {
       console.log("Errore controllo preferito");
     }
   }
- 
+
   async function handlePartecipa() {
     try {
       const IDUtente = await AsyncStorage.getItem("IDUtente");
@@ -105,7 +106,8 @@ export default function EventDetail() {
       setMessaggio("Errore di connessione.");
     }
   }
-   async function caricaPartecipanti() {
+
+  async function caricaPartecipanti() {
     try {
       const response = await fetch(`${BASE_URL}/partecipanti-evento.php?IDEvento=${id}`);
       const data = await response.json();
@@ -152,7 +154,9 @@ export default function EventDetail() {
 
       <Text style={styles.titolo}>{evento.Titolo}</Text>
       <Text style={styles.luogo}>📍 {evento.NomeLuogo}</Text>
-      <Text style={styles.indirizzo}>{evento.Indirizzo}</Text>
+      <Text style={styles.indirizzo}>
+        {evento.Via} {evento.NumeroCivico}, {evento.Citta} ({evento.CAP})
+      </Text>
 
       <View style={styles.linea} />
 
@@ -220,7 +224,7 @@ export default function EventDetail() {
           </View>
         </View>
       )}
-      {/* Lista partecipanti — solo per locale */}
+
       {tipo === "locale" && (
         <View style={styles.partecipantiBox}>
           <Text style={styles.partecipantiTitolo}>
@@ -239,6 +243,7 @@ export default function EventDetail() {
           )}
         </View>
       )}
+
     </ScrollView>
   );
 }
@@ -382,10 +387,10 @@ const styles = StyleSheet.create({
     letterSpacing: 3,
   },
   partecipantiBox: {
-  marginTop: 30,
-  borderWidth: 1,
-  borderColor: "#1a1a1a",
-  padding: 16,
+    marginTop: 30,
+    borderWidth: 1,
+    borderColor: "#1a1a1a",
+    padding: 16,
   },
   partecipantiTitolo: {
     color: "#c9b99a",
