@@ -24,7 +24,6 @@ export default function CreateEvent() {
   const [messaggio, setMessaggio] = useState("");
   const [errore, setErrore] = useState("");
 
-  // Campi form
   const [titolo, setTitolo] = useState("");
   const [data, setData] = useState("");
   const [numPartecipanti, setNumPartecipanti] = useState("");
@@ -69,6 +68,26 @@ export default function CreateEvent() {
       return;
     }
 
+    // Validazione data
+    const dataInserita = new Date(data);
+    const oggi = new Date();
+    oggi.setHours(0, 0, 0, 0);
+    const maxData = new Date();
+    maxData.setFullYear(oggi.getFullYear() + 2);
+
+    if (isNaN(dataInserita.getTime())) {
+      setErrore("Inserisci una data valida nel formato AAAA-MM-GG");
+      return;
+    }
+    if (dataInserita < oggi) {
+      setErrore("La data non può essere nel passato");
+      return;
+    }
+    if (dataInserita > maxData) {
+      setErrore("La data non può essere oltre 2 anni da oggi");
+      return;
+    }
+
     setLoading(true);
     setErrore("");
 
@@ -106,7 +125,73 @@ export default function CreateEvent() {
     }
   }
 
-  // Se è un locale, mostra pagina diversa
+  async function handleCreaEvento() {
+    if (!titoloLocale || !descrizioneLocale || !dataLocale || !oraLocale || !prezzoLocale || !maxPartecipantiLocale || !luogoScelto) {
+      setErrore("Compila tutti i campi e scegli un luogo");
+      return;
+    }
+
+    // Validazione data
+    const dataInserita = new Date(dataLocale);
+    const oggi = new Date();
+    oggi.setHours(0, 0, 0, 0);
+    const maxData = new Date();
+    maxData.setFullYear(oggi.getFullYear() + 2);
+
+    if (isNaN(dataInserita.getTime())) {
+      setErrore("Inserisci una data valida nel formato AAAA-MM-GG");
+      return;
+    }
+    if (dataInserita < oggi) {
+      setErrore("La data non può essere nel passato");
+      return;
+    }
+    if (dataInserita > maxData) {
+      setErrore("La data non può essere oltre 2 anni da oggi");
+      return;
+    }
+
+    setLoadingLocale(true);
+    setErrore("");
+
+    try {
+      const IDUtente = await AsyncStorage.getItem("IDUtente");
+      const response = await fetch(`${BASE_URL}/crea-evento-locale.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          Titolo: titoloLocale,
+          Descrizione: descrizioneLocale,
+          DataEvento: dataLocale,
+          Ora: oraLocale,
+          Prezzo: prezzoLocale,
+          MaxPartecipanti: maxPartecipantiLocale,
+          IDLuogo: luogoScelto,
+          IDUtente: IDUtente,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setMessaggioLocale("Evento creato con successo!");
+        setTitoloLocale("");
+        setDescrizioneLocale("");
+        setDataLocale("");
+        setOraLocale("");
+        setPrezzoLocale("");
+        setMaxPartecipantiLocale("");
+        setLuogoScelto(null);
+      } else {
+        setErrore(result.message);
+      }
+    } catch (e) {
+      setErrore("Errore di connessione.");
+    } finally {
+      setLoadingLocale(false);
+    }
+  }
+
   if (tipo === "locale") {
     return (
       <KeyboardAvoidingView
@@ -188,7 +273,6 @@ export default function CreateEvent() {
             keyboardType="numeric"
           />
 
-          {/* Selezione luogo */}
           <Text style={styles.label}>SCEGLI IL TUO LUOGO</Text>
           {loadingLuoghi ? (
             <ActivityIndicator color="#c9b99a" />
@@ -208,7 +292,9 @@ export default function CreateEvent() {
                 ]}>
                   {luogo.Nome}
                 </Text>
-                <Text style={styles.luogoIndirizzo}>{luogo.Indirizzo}</Text>
+                <Text style={styles.luogoIndirizzo}>
+                  {luogo.Via} {luogo.NumeroCivico}, {luogo.Citta}
+                </Text>
               </TouchableOpacity>
             ))
           )}
@@ -233,53 +319,6 @@ export default function CreateEvent() {
     );
   }
 
-  async function handleCreaEvento() {
-  if (!titoloLocale || !descrizioneLocale || !dataLocale || !oraLocale || !prezzoLocale || !maxPartecipantiLocale || !luogoScelto) {
-    setErrore("Compila tutti i campi e scegli un luogo");
-    return;
-  }
-
-  setLoadingLocale(true);
-  setErrore("");
-
-  try {
-    const IDUtente = await AsyncStorage.getItem("IDUtente");
-    const response = await fetch(`${BASE_URL}/crea-evento-locale.php`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        Titolo: titoloLocale,
-        Descrizione: descrizioneLocale,
-        DataEvento: dataLocale,
-        Ora: oraLocale,
-        Prezzo: prezzoLocale,
-        MaxPartecipanti: maxPartecipantiLocale,
-        IDLuogo: luogoScelto,
-        IDUtente: IDUtente,
-      }),
-    });
-
-    const result = await response.json();
-
-    if (result.success) {
-          setMessaggioLocale("Evento creato con successo!");
-          setTitoloLocale("");
-          setDescrizioneLocale("");
-          setDataLocale("");
-          setOraLocale("");
-          setPrezzoLocale("");
-          setMaxPartecipantiLocale("");
-          setLuogoScelto(null);
-        } else {
-          setErrore(result.message);
-        }
-      } catch (e) {
-        setErrore("Errore di connessione.");
-      } finally {
-        setLoadingLocale(false);
-      }
-    }
-
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -290,19 +329,16 @@ export default function CreateEvent() {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Bottone indietro */}
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <Text style={styles.backText}>← INDIETRO</Text>
         </TouchableOpacity>
 
-        {/* Titolo pagina */}
         <Text style={styles.titoloPagina}>RICHIESTA EVENTO</Text>
         <View style={styles.linea} />
         <Text style={styles.subtitle}>
           Invia una richiesta al locale. Se approvata, il tuo evento sarà visibile a tutti.
         </Text>
 
-        {/* Form */}
         <Text style={styles.label}>TITOLO EVENTO</Text>
         <TextInput
           style={styles.input}
@@ -343,7 +379,6 @@ export default function CreateEvent() {
           numberOfLines={4}
         />
 
-        {/* Selezione luogo */}
         <Text style={styles.label}>SCEGLI IL LUOGO</Text>
         {loadingLuoghi ? (
           <ActivityIndicator color="#c9b99a" />
@@ -363,18 +398,16 @@ export default function CreateEvent() {
               ]}>
                 {luogo.Nome}
               </Text>
-              <Text style={styles.luogoIndirizzo}>{luogo.Indirizzo}</Text>
+              <Text style={styles.luogoIndirizzo}>
+                {luogo.Via} {luogo.NumeroCivico}, {luogo.Citta}
+              </Text>
             </TouchableOpacity>
           ))
         )}
 
-        {/* Errore */}
         {errore ? <Text style={styles.error}>{errore}</Text> : null}
-
-        {/* Successo */}
         {messaggio ? <Text style={styles.success}>{messaggio}</Text> : null}
 
-        {/* Bottone invia */}
         <TouchableOpacity
           style={styles.button}
           onPress={handleInviaRichiesta}

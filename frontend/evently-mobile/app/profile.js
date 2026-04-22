@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
+import BottomBar from "../components/BottomBar";
 import {
   ActivityIndicator,
   ScrollView,
@@ -52,95 +53,97 @@ export default function Profile() {
   );
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={{ flex: 1, backgroundColor: "#0a0a0a" }}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
 
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>EVENTLY</Text>
-        <View style={styles.titleUnderline} />
-        <Text style={styles.subtitle}>IL MIO PROFILO</Text>
-      </View>
-
-      {/* Avatar */}
-      <View style={styles.avatarContainer}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {utente?.Nome?.charAt(0).toUpperCase()}
-          </Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>EVENTLY</Text>
+          <View style={styles.titleUnderline} />
+          <Text style={styles.subtitle}>IL MIO PROFILO</Text>
         </View>
-        <Text style={styles.nomeUtente}>{utente?.Nome}</Text>
-        <Text style={styles.tipoUtente}>{tipo?.toUpperCase()}</Text>
-      </View>
 
-      <View style={styles.linea} />
+        {/* Avatar */}
+        <View style={styles.avatarContainer}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {utente?.Nome?.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+          <Text style={styles.nomeUtente}>{utente?.Nome}</Text>
+          <Text style={styles.tipoUtente}>{tipo?.toUpperCase()}</Text>
+        </View>
 
-      {/* Info */}
-      <View style={styles.infoBox}>
-        <Text style={styles.infoLabel}>EMAIL</Text>
-        <Text style={styles.infoValue}>{utente?.Email}</Text>
-      </View>
+        <View style={styles.linea} />
 
-      <View style={styles.linea} />
+        <View style={styles.infoBox}>
+          <Text style={styles.infoLabel}>EMAIL</Text>
+          <Text style={styles.infoValue}>{utente?.Email}</Text>
+        </View>
 
-      {/* Sezioni extra in base al tipo */}
-      {tipo === "privato" && (
-        <>
+        <View style={styles.linea} />
+
+        {tipo === "privato" && (
+          <>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push("/mie-richieste")}
+            >
+              <Text style={styles.menuItemText}>LE MIE RICHIESTE</Text>
+              <Text style={styles.menuItemArrow}>→</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push("/preferiti")}
+            >
+              <Text style={styles.menuItemText}>I MIEI PREFERITI</Text>
+              <Text style={styles.menuItemArrow}>→</Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        {tipo === "locale" && (
+          <>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push("/locale")}
+            >
+              <Text style={styles.menuItemText}>GESTISCI RICHIESTE</Text>
+              <Text style={styles.menuItemArrow}>→</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push("/miei-eventi")}
+            >
+              <Text style={styles.menuItemText}>I MIEI EVENTI</Text>
+              <Text style={styles.menuItemArrow}>→</Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        {tipo === "admin" && (
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => router.push("/mie-richieste")}
+            onPress={() => router.push("/admin")}
           >
-            <Text style={styles.menuItemText}>LE MIE RICHIESTE</Text>
+            <Text style={styles.menuItemText}>PANNELLO ADMIN</Text>
             <Text style={styles.menuItemArrow}>→</Text>
           </TouchableOpacity>
+        )}
 
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.push("/preferiti")}
-          >
-            <Text style={styles.menuItemText}>I MIEI PREFERITI</Text>
-            <Text style={styles.menuItemArrow}>→</Text>
-          </TouchableOpacity>
-        </>
-      )}
+        <View style={styles.linea} />
 
-      {tipo === "locale" && (
-        <>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.push("/locale")}
-          >
-            <Text style={styles.menuItemText}>GESTISCI RICHIESTE</Text>
-            <Text style={styles.menuItemArrow}>→</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.push("/miei-eventi")}
-          >
-            <Text style={styles.menuItemText}>I MIEI EVENTI</Text>
-            <Text style={styles.menuItemArrow}>→</Text>
-          </TouchableOpacity>
-        </>
-      )}
-
-      {tipo === "admin" && (
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => router.push("/admin")}
-        >
-          <Text style={styles.menuItemText}>PANNELLO ADMIN</Text>
-          <Text style={styles.menuItemArrow}>→</Text>
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+          <Text style={styles.logoutText}>ESCI</Text>
         </TouchableOpacity>
-      )}
 
-      <View style={styles.linea} />
+      </ScrollView>
 
-      {/* Logout */}
-      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-        <Text style={styles.logoutText}>ESCI</Text>
-      </TouchableOpacity>
+      <BottomBar paginaAttiva="profilo" />
 
-    </ScrollView>
+    </View>
   );
 }
 

@@ -1,5 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -9,10 +7,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import BottomBar from "../components/BottomBar";
 import BASE_URL from "../config/api";
 
 export default function Admin() {
-  const router = useRouter();
   const [richieste, setRichieste] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -59,7 +57,6 @@ export default function Admin() {
   return (
     <View style={styles.container}>
 
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>EVENTLY</Text>
         <View style={styles.titleUnderline} />
@@ -76,7 +73,6 @@ export default function Admin() {
         <ScrollView contentContainerStyle={styles.lista}>
           {richieste.map((r) => (
             <View key={r.ID} style={styles.card}>
-
               <Text style={styles.cardTitolo}>{r.Titolo}</Text>
               <Text style={styles.cardInfo}>👤 {r.NomeUtente}</Text>
               <Text style={styles.cardInfo}>📍 {r.NomeLuogo}</Text>
@@ -91,37 +87,22 @@ export default function Admin() {
                   style={styles.btnApprova}
                   onPress={() => handleDecisione(r.ID, "approvato_admin")}
                 >
-                  <Text style={styles.btnText}>✓ APPROVA</Text>
+                  <Text style={styles.btnApprovaText}>✓ APPROVA</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={styles.btnRifiuta}
                   onPress={() => handleDecisione(r.ID, "rifiutato")}
                 >
-                  <Text style={styles.btnText}>✗ RIFIUTA</Text>
+                  <Text style={styles.btnRifiutaText}>✗ RIFIUTA</Text>
                 </TouchableOpacity>
               </View>
-
             </View>
           ))}
         </ScrollView>
       )}
 
-      {/* Bottom bar */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity
-          style={styles.bottomBtn}
-          onPress={() => router.push("/home")}
-        >
-          <Text style={styles.bottomIcon}>🏠</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.bottomBtn}
-          onPress={() => router.push("/profile")}
-        >
-          <Text style={styles.bottomIcon}>👤</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomBar paginaAttiva="admin" />
 
     </View>
   );
@@ -198,6 +179,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "center",
   },
+  btnApprovaText: {
+    color: "#0a0a0a",
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 2,
+  },
   btnRifiuta: {
     flex: 1,
     borderWidth: 1,
@@ -205,8 +192,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "center",
   },
-  btnText: {
-    color: "#0a0a0a",
+  btnRifiutaText: {
+    color: "#e07070",
     fontSize: 10,
     fontWeight: "700",
     letterSpacing: 2,
@@ -222,25 +209,5 @@ const styles = StyleSheet.create({
     color: "#e07070",
     textAlign: "center",
     marginTop: 40,
-  },
-  bottomBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 70,
-    backgroundColor: "#0f0f0f",
-    borderTopWidth: 1,
-    borderTopColor: "#1a1a1a",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
-    paddingBottom: 10,
-  },
-  bottomBtn: {
-    padding: 10,
-  },
-  bottomIcon: {
-    fontSize: 22,
   },
 });
