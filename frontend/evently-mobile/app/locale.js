@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react"; // ← modificato
+import { useFocusEffect } from "expo-router";   // ← aggiunto
 import {
   ActivityIndicator,
   ScrollView,
@@ -16,9 +17,12 @@ export default function Locale() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    caricaRichieste();
-  }, []);
+  // ← sostituito useEffect con useFocusEffect
+  useFocusEffect(
+    useCallback(() => {
+      caricaRichieste();
+    }, [])
+  );
 
   async function caricaRichieste() {
     try {
@@ -60,6 +64,7 @@ export default function Locale() {
     }
   }
 
+  // tutto il return rimane IDENTICO al tuo
   return (
     <View style={styles.container}>
 
@@ -114,105 +119,24 @@ export default function Locale() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#0a0a0a",
-  },
+  container: { flex: 1, backgroundColor: "#0a0a0a" },
   header: {
-    alignItems: "center",
-    paddingTop: 60,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#1a1a1a",
+    alignItems: "center", paddingTop: 60, paddingBottom: 20,
+    borderBottomWidth: 1, borderBottomColor: "#1a1a1a",
   },
-  title: {
-    color: "#ffffff",
-    fontSize: 24,
-    fontWeight: "200",
-    letterSpacing: 10,
-  },
-  titleUnderline: {
-    width: 30,
-    height: 1,
-    backgroundColor: "#c9b99a",
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  subtitle: {
-    color: "#c9b99a",
-    fontSize: 9,
-    letterSpacing: 4,
-  },
-  lista: {
-    padding: 20,
-    paddingBottom: 100,
-  },
-  card: {
-    borderWidth: 1,
-    borderColor: "#1a1a1a",
-    padding: 20,
-    marginBottom: 16,
-    backgroundColor: "#0f0f0f",
-  },
-  cardTitolo: {
-    color: "#ffffff",
-    fontSize: 18,
-    fontWeight: "300",
-    letterSpacing: 1,
-    marginBottom: 12,
-  },
-  cardInfo: {
-    color: "#888",
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  cardMessaggio: {
-    color: "#555",
-    fontSize: 12,
-    fontStyle: "italic",
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  bttns: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 16,
-  },
-  btnApprova: {
-    flex: 1,
-    backgroundColor: "#c9b99a",
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  btnApprovaText: {
-    color: "#0a0a0a",
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 2,
-  },
-  btnRifiuta: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#e07070",
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  btnRifiutaText: {
-    color: "#e07070",
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 2,
-  },
-  empty: {
-    color: "#555",
-    textAlign: "center",
-    marginTop: 60,
-    fontSize: 13,
-    letterSpacing: 2,
-  },
-  error: {
-    color: "#e07070",
-    textAlign: "center",
-    marginTop: 40,
-  },
+  title: { color: "#ffffff", fontSize: 24, fontWeight: "200", letterSpacing: 10 },
+  titleUnderline: { width: 30, height: 1, backgroundColor: "#c9b99a", marginTop: 8, marginBottom: 8 },
+  subtitle: { color: "#c9b99a", fontSize: 9, letterSpacing: 4 },
+  lista: { padding: 20, paddingBottom: 100 },
+  card: { borderWidth: 1, borderColor: "#1a1a1a", padding: 20, marginBottom: 16, backgroundColor: "#0f0f0f" },
+  cardTitolo: { color: "#ffffff", fontSize: 18, fontWeight: "300", letterSpacing: 1, marginBottom: 12 },
+  cardInfo: { color: "#888", fontSize: 12, marginBottom: 4 },
+  cardMessaggio: { color: "#555", fontSize: 12, fontStyle: "italic", marginTop: 8, marginBottom: 8 },
+  bttns: { flexDirection: "row", gap: 12, marginTop: 16 },
+  btnApprova: { flex: 1, backgroundColor: "#c9b99a", paddingVertical: 12, alignItems: "center" },
+  btnApprovaText: { color: "#0a0a0a", fontSize: 10, fontWeight: "700", letterSpacing: 2 },
+  btnRifiuta: { flex: 1, borderWidth: 1, borderColor: "#e07070", paddingVertical: 12, alignItems: "center" },
+  btnRifiutaText: { color: "#e07070", fontSize: 10, fontWeight: "700", letterSpacing: 2 },
+  empty: { color: "#555", textAlign: "center", marginTop: 60, fontSize: 13, letterSpacing: 2 },
+  error: { color: "#e07070", textAlign: "center", marginTop: 40 },
 });

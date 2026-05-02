@@ -10,6 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once("../config/db.php");
+require_once("crea_notifica.php"); // ← AGGIUNTO
 
 $data = json_decode(file_get_contents("php://input"), true);
 
@@ -39,7 +40,6 @@ try {
         $stm->execute();
         $richiesta = $stm->fetch(PDO::FETCH_ASSOC);
 
-        // Creiamo l'evento
         $stm = $pdo->prepare("
             INSERT INTO Evento (Titolo, Descrizione, DataEvento, Ora, Prezzo, MaxPartecipanti, IDLuogo, IDLocale, IDPrivato)
             VALUES (:titolo, :desc, :data, '20:00:00', 0, :maxP, :luogo, :locale, :privato)
@@ -53,6 +53,28 @@ try {
             ":locale" => $richiesta["IDLocale"],
             ":privato" => $richiesta["IDPrivato"],
         ]);
+
+        // ← AGGIUNTO: notifica approvazione
+        creaNotifica(
+            $pdo,
+            $IDUtente,
+            "richiesta_accettata",
+            "Il locale ha approvato la tua richiesta \"" . $richiesta["Titolo"] . "\"! L'evento è stato creato."
+        );
+
+    } else if($stato === "rifiutato") {
+        // ← AGGIUNTO: recupera il titolo per il messaggio
+        $stm = $pdo->prepare("SELECT Titolo FROM RichiestaEvento WHERE ID = :id");
+        $stm->bindValue(":id", $IDRichiesta);
+        $stm->execute();
+        $richiesta = $stm->fetch(PDO::FETCH_ASSOC);
+
+        creaNotifica(
+            $pdo,
+            $IDUtente,
+            "richiesta_rifiutata",
+            "Il locale ha rifiutato la tua richiesta \"" . $richiesta["Titolo"] . "\"."
+        );
     }
 
     echo json_encode(["success" => true, "message" => "Richiesta aggiornata"]);
