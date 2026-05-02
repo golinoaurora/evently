@@ -1,7 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 import BottomBar from "../components/BottomBar";
+import Avatar from "boring-avatars";
 import {
   ActivityIndicator,
   ScrollView,
@@ -18,21 +20,20 @@ export default function Profile() {
   const [tipo, setTipo] = useState("");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    caricaProfilo();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      caricaProfilo();
+    }, [])
+  );
 
   async function caricaProfilo() {
     try {
       const IDUtente = await AsyncStorage.getItem("IDUtente");
       const t = await AsyncStorage.getItem("tipo");
       setTipo(t);
-
       const response = await fetch(`${BASE_URL}/profilo.php?IDUtente=${IDUtente}`);
       const data = await response.json();
-      if (data.success) {
-        setUtente(data.utente);
-      }
+      if (data.success) setUtente(data.utente);
     } catch (e) {
       console.log("Errore caricamento profilo");
     } finally {
@@ -56,22 +57,34 @@ export default function Profile() {
     <View style={{ flex: 1, backgroundColor: "#0a0a0a" }}>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
 
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>EVENTLY</Text>
           <View style={styles.titleUnderline} />
           <Text style={styles.subtitle}>IL MIO PROFILO</Text>
         </View>
 
-        {/* Avatar */}
         <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {utente?.Nome?.charAt(0).toUpperCase()}
-            </Text>
-          </View>
+          <Avatar
+            size={80}
+            name={utente?.Nome || "utente"}
+            variant={utente?.avatar_config || "beam"}
+            colors={["#c9b99a", "#a08060", "#7a5c3a", "#3a2a1a", "#1a1008"]}
+          />
           <Text style={styles.nomeUtente}>{utente?.Nome}</Text>
           <Text style={styles.tipoUtente}>{tipo?.toUpperCase()}</Text>
+
+          {utente?.bio ? (
+            <Text style={styles.bioText}>{utente.bio}</Text>
+          ) : null}
+
+          {tipo === "privato" && (
+            <TouchableOpacity
+              style={styles.editBtn}
+              onPress={() => router.push("/modifica-profilo")}
+            >
+              <Text style={styles.editBtnText}>MODIFICA PROFILO</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.linea} />
@@ -142,7 +155,6 @@ export default function Profile() {
       </ScrollView>
 
       <BottomBar paginaAttiva="profilo" />
-
     </View>
   );
 }
@@ -184,31 +196,38 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 40,
   },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 1,
-    borderColor: "#c9b99a",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
-  },
-  avatarText: {
-    color: "#c9b99a",
-    fontSize: 32,
-    fontWeight: "200",
-  },
   nomeUtente: {
     color: "#ffffff",
     fontSize: 22,
     fontWeight: "200",
     letterSpacing: 4,
     marginBottom: 8,
+    marginTop: 16,
   },
   tipoUtente: {
     color: "#555",
     fontSize: 10,
+    letterSpacing: 4,
+  },
+  bioText: {
+    color: "#888",
+    fontSize: 13,
+    fontWeight: "200",
+    letterSpacing: 1,
+    marginTop: 10,
+    textAlign: "center",
+    paddingHorizontal: 40,
+  },
+  editBtn: {
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: "#c9b99a",
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+  },
+  editBtnText: {
+    color: "#c9b99a",
+    fontSize: 9,
     letterSpacing: 4,
   },
   linea: {

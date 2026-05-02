@@ -31,8 +31,8 @@ try {
 
     $stm = $pdo->prepare("
         SELECT e.ID, e.Titolo, e.Descrizione, e.DataEvento,
-               e.Ora, e.Prezzo, e.MaxPartecipanti,
-               l.Nome AS NomeLuogo, l.Indirizzo
+            e.Ora, e.Prezzo, e.MaxPartecipanti,
+            l.Nome AS NomeLuogo, l.Via, l.NumeroCivico, l.Citta, l.CAP
         FROM Evento e
         JOIN Luogo l ON l.ID = e.IDLuogo
         WHERE e.IDLocale = :IDLocale
@@ -45,5 +45,5 @@ try {
     echo json_encode(["success" => true, "eventi" => $eventi]);
 
 } catch(PDOException $e) {
-    echo json_encode(["success" => false, "message" => "Errore server"]);
+    echo json_encode(["success" => false, "message" => $e->getMessage()]);
 }

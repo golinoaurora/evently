@@ -4,35 +4,35 @@ header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Content-Type: application/json");
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 require_once("../config/db.php");
 
 $IDUtente = $_GET["IDUtente"] ?? null;
-
-if(!$IDUtente) {
+if (!$IDUtente) {
     echo json_encode(["success" => false, "message" => "IDUtente mancante"]);
     exit;
 }
 
 try {
     $stm = $pdo->prepare("
-        SELECT ID, Nome, Email, avatar_config, bio FROM Utente WHERE ID = :id
+        SELECT ID, tipo, messaggio, letta, created_at
+        FROM Notifica
+        WHERE IDUtente = :id
+        ORDER BY created_at DESC
+        LIMIT 50
     ");
     $stm->bindValue(":id", $IDUtente);
     $stm->execute();
-    $utente = $stm->fetch(PDO::FETCH_ASSOC);
+    $notifiche = $stm->fetchAll(PDO::FETCH_ASSOC);
 
-    if(!$utente) {
-        echo json_encode(["success" => false, "message" => "Utente non trovato"]);
-        exit;
-    }
+    $nonLette = array_filter($notifiche, fn($n) => $n['letta'] == 0);
 
-    echo json_encode(["success" => true, "utente" => $utente]);
-
-} catch(PDOException $e) {
+    echo json_encode([
+        "success" => true,
+        "notifiche" => $notifiche,
+        "nonLette" => count($nonLette)
+    ]);
+} catch (PDOException $e) {
     echo json_encode(["success" => false, "message" => "Errore server"]);
 }
