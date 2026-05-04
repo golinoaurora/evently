@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once("../config/db.php");
-require_once("crea_notifica.php"); // ← AGGIUNTO
+require_once("crea_notifica.php");
 
 $data = json_decode(file_get_contents("php://input"), true);
 
@@ -28,18 +28,19 @@ try {
     $stm = $pdo->prepare("UPDATE RichiestaEvento SET Stato = :stato WHERE ID = :id");
     $stm->execute([":stato" => $stato, ":id" => $IDRichiesta]);
 
-    // Se approvato dal locale, crea l'evento vero!
-    if($stato === "approvato") {
-        $stm = $pdo->prepare("
-            SELECT r.*, l.IDLocale 
-            FROM RichiestaEvento r
-            JOIN Luogo l ON l.ID = r.IDLuogo
-            WHERE r.ID = :id
-        ");
-        $stm->bindValue(":id", $IDRichiesta);
-        $stm->execute();
-        $richiesta = $stm->fetch(PDO::FETCH_ASSOC);
+    // Prendiamo i dati della richiesta incluso IDUtente del privato
+    $stm = $pdo->prepare("
+        SELECT r.*, l.IDLocale, p.IDUtente AS IDUtentePrivato
+        FROM RichiestaEvento r
+        JOIN Luogo l ON l.ID = r.IDLuogo
+        JOIN Privato p ON p.ID = r.IDPrivato
+        WHERE r.ID = :id
+    ");
+    $stm->bindValue(":id", $IDRichiesta);
+    $stm->execute();
+    $richiesta = $stm->fetch(PDO::FETCH_ASSOC);
 
+    if($stato === "approvato") {
         $stm = $pdo->prepare("
             INSERT INTO Evento (Titolo, Descrizione, DataEvento, Ora, Prezzo, MaxPartecipanti, IDLuogo, IDLocale, IDPrivato)
             VALUES (:titolo, :desc, :data, '20:00:00', 0, :maxP, :luogo, :locale, :privato)
@@ -54,24 +55,18 @@ try {
             ":privato" => $richiesta["IDPrivato"],
         ]);
 
-        // ← AGGIUNTO: notifica approvazione
+        // Notifica al privato che ha organizzato l'evento
         creaNotifica(
             $pdo,
-            $IDUtente,
+            $richiesta["IDUtentePrivato"],
             "richiesta_accettata",
             "Il locale ha approvato la tua richiesta \"" . $richiesta["Titolo"] . "\"! L'evento è stato creato."
         );
 
     } else if($stato === "rifiutato") {
-        // ← AGGIUNTO: recupera il titolo per il messaggio
-        $stm = $pdo->prepare("SELECT Titolo FROM RichiestaEvento WHERE ID = :id");
-        $stm->bindValue(":id", $IDRichiesta);
-        $stm->execute();
-        $richiesta = $stm->fetch(PDO::FETCH_ASSOC);
-
         creaNotifica(
             $pdo,
-            $IDUtente,
+            $richiesta["IDUtentePrivato"],
             "richiesta_rifiutata",
             "Il locale ha rifiutato la tua richiesta \"" . $richiesta["Titolo"] . "\"."
         );
@@ -80,5 +75,5 @@ try {
     echo json_encode(["success" => true, "message" => "Richiesta aggiornata"]);
 
 } catch(PDOException $e) {
-    echo json_encode(["success" => false, "message" => "Errore server"]);
+    echo json_encode(["success" => false, "message" => $e->getMessage()]);
 }

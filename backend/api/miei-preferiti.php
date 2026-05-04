@@ -21,8 +21,8 @@ if(!$IDUtente) {
 try {
     $stm = $pdo->prepare("
         SELECT e.ID, e.Titolo, e.Descrizione, e.DataEvento,
-               e.Ora, e.Prezzo, e.MaxPartecipanti,
-               l.Nome AS NomeLuogo, l.Indirizzo
+            e.Ora, e.Prezzo, e.MaxPartecipanti,
+            l.Nome AS NomeLuogo, l.Via, l.NumeroCivico, l.Citta, l.CAP
         FROM Preferiti pref
         JOIN Evento e ON e.ID = pref.IDEvento
         JOIN Luogo l ON l.ID = e.IDLuogo
@@ -37,5 +37,5 @@ try {
     echo json_encode(["success" => true, "preferiti" => $preferiti]);
 
 } catch(PDOException $e) {
-    echo json_encode(["success" => false, "message" => "Errore server"]);
+    echo json_encode(["success" => false, "message" => $e->getMessage()]);
 }

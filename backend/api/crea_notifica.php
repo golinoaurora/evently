@@ -1,8 +1,6 @@
 <?php
 // Non ha header perché viene incluso dagli altri file, non chiamato direttamente
 
-require_once("../config/db.php");
-
 function creaNotifica($pdo, $IDUtente, $tipo, $messaggio) {
     try {
         $stm = $pdo->prepare("
