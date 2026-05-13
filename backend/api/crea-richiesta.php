@@ -15,18 +15,18 @@ $data = json_decode(file_get_contents("php://input"), true);
 
 $titolo = $data["Titolo"] ?? "";
 $dataEvento = $data["DataEvento"] ?? "";
+$ora = $data["Ora"] ?? "";
 $numPartecipanti = $data["NumeroPartecipanti"] ?? "";
 $messaggio = $data["Messaggio"] ?? "";
 $IDLuogo = $data["IDLuogo"] ?? null;
 $IDUtente = $data["IDUtente"] ?? null;
 
-if(!$titolo || !$dataEvento || !$numPartecipanti || !$IDLuogo || !$IDUtente) {
+if(!$titolo || !$dataEvento || !$ora || !$numPartecipanti || !$IDLuogo || !$IDUtente) {
     echo json_encode(["success" => false, "message" => "Dati mancanti"]);
     exit;
 }
 
 try {
-    // Troviamo l'ID privato dall'IDUtente
     $stm = $pdo->prepare("SELECT ID FROM Privato WHERE IDUtente = :id");
     $stm->bindValue(":id", $IDUtente);
     $stm->execute();
@@ -37,15 +37,15 @@ try {
         exit;
     }
 
-    // Inserimento richiesta
     $stm = $pdo->prepare("
-        INSERT INTO RichiestaEvento (Titolo, DataEvento, NumeroPartecipanti, Messaggio, Stato, IDLuogo, IDPrivato)
-        VALUES (:titolo, :data, :num, :msg, 'in_attesa', :luogo, :privato)
+        INSERT INTO RichiestaEvento (Titolo, DataEvento, Ora, NumeroPartecipanti, Messaggio, Stato, IDLuogo, IDPrivato)
+        VALUES (:titolo, :data, :ora, :num, :msg, 'in_attesa', :luogo, :privato)
     ");
 
     $stm->execute([
         ":titolo" => $titolo,
         ":data" => $dataEvento,
+        ":ora" => $ora,
         ":num" => $numPartecipanti,
         ":msg" => $messaggio,
         ":luogo" => $IDLuogo,
@@ -58,5 +58,5 @@ try {
     ]);
 
 } catch(PDOException $e) {
-    echo json_encode(["success" => false, "message" => "Errore server"]);
+    echo json_encode(["success" => false, "message" => $e->getMessage()]);
 }
