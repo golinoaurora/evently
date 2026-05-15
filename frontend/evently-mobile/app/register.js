@@ -15,7 +15,6 @@ import {
 import BASE_URL from "../config/api";
 
 const { width } = Dimensions.get("window");
-
 const API_URL = `${BASE_URL}/register.php`;
 
 export default function Register() {
@@ -25,7 +24,9 @@ export default function Register() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [tipo, setTipo] = useState("privato"); // default: utente normale
+  const [tipo, setTipo] = useState("privato");
+  const [ragioneSociale, setRagioneSociale] = useState("");
+  const [partitaIVA, setPartitaIVA] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -35,14 +36,22 @@ export default function Register() {
       return;
     }
 
-      // Validazione email
+    if (tipo === "locale" && (!ragioneSociale || !partitaIVA)) {
+      setError("Inserisci ragione sociale e partita IVA");
+      return;
+    }
+
+    if (tipo === "locale" && partitaIVA.length !== 11) {
+      setError("La partita IVA deve essere di 11 cifre");
+      return;
+    }
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError("Inserisci un'email valida");
       return;
     }
 
-    // Validazione password — tutti gli errori insieme
     const erroriPassword = [];
     if (password.length < 8) erroriPassword.push("almeno 8 caratteri");
     if (!/[A-Z]/.test(password)) erroriPassword.push("una lettera maiuscola");
@@ -53,27 +62,27 @@ export default function Register() {
       setError("La password deve contenere: " + erroriPassword.join(", "));
       return;
     }
+
     setLoading(true);
     setError("");
 
     try {
       const response = await fetch(API_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           Nome: nome,
           Email: email,
           PasswordUtente: password,
           tipo: tipo,
+          RagioneSociale: ragioneSociale,
+          PartitaIVA: partitaIVA,
         }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        // Registrazione riuscita → vai al login
         router.replace("/login");
       } else {
         setError(data.message);
@@ -94,20 +103,16 @@ export default function Register() {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Linea decorativa top */}
         <View style={styles.lineTop} />
 
-        {/* Titolo */}
         <View style={styles.header}>
           <Text style={styles.title}>EVENTLY</Text>
           <View style={styles.titleUnderline} />
           <Text style={styles.subtitle}>Crea il tuo account</Text>
         </View>
 
-        {/* Form */}
         <View style={styles.form}>
 
-          {/* Campo Nome */}
           <Text style={styles.label}>NOME</Text>
           <TextInput
             style={styles.input}
@@ -118,7 +123,6 @@ export default function Register() {
             autoCapitalize="words"
           />
 
-          {/* Campo Email */}
           <Text style={styles.label}>EMAIL</Text>
           <TextInput
             style={styles.input}
@@ -130,7 +134,6 @@ export default function Register() {
             autoCapitalize="none"
           />
 
-          {/* Campo Password */}
           <Text style={styles.label}>PASSWORD</Text>
           <View style={styles.passwordContainer}>
             <TextInput
@@ -146,7 +149,6 @@ export default function Register() {
             </TouchableOpacity>
           </View>
 
-          {/* Selezione tipo account */}
           <Text style={styles.label}>TIPO ACCOUNT</Text>
           <View style={styles.tipoContainer}>
             <TouchableOpacity
@@ -168,10 +170,34 @@ export default function Register() {
             </TouchableOpacity>
           </View>
 
-          {/* Messaggio di errore */}
+          {/* Campi extra solo per locale */}
+          {tipo === "locale" && (
+            <>
+              <Text style={styles.label}>RAGIONE SOCIALE</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="es. Luluma S.r.l."
+                placeholderTextColor="#555"
+                value={ragioneSociale}
+                onChangeText={setRagioneSociale}
+                autoCapitalize="words"
+              />
+
+              <Text style={styles.label}>PARTITA IVA</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="11 cifre"
+                placeholderTextColor="#555"
+                value={partitaIVA}
+                onChangeText={setPartitaIVA}
+                keyboardType="numeric"
+                maxLength={11}
+              />
+            </>
+          )}
+
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
-          {/* Bottone Registrati */}
           <TouchableOpacity
             style={styles.button}
             onPress={handleRegister}
@@ -184,7 +210,6 @@ export default function Register() {
             )}
           </TouchableOpacity>
 
-          {/* Link login */}
           <TouchableOpacity onPress={() => router.push("/login")}>
             <Text style={styles.link}>
               Hai già un account?{" "}
@@ -194,7 +219,6 @@ export default function Register() {
 
         </View>
 
-        {/* Linea decorativa bottom */}
         <View style={styles.lineBottom} />
 
       </ScrollView>
@@ -267,6 +291,24 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 4,
   },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#333",
+  },
+  inputPassword: {
+    flex: 1,
+    color: "#ffffff",
+    fontSize: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+  },
+  mostraBtn: {
+    color: "#c9b99a",
+    fontSize: 9,
+    letterSpacing: 2,
+  },
   tipoContainer: {
     flexDirection: "row",
     gap: 12,
@@ -319,23 +361,5 @@ const styles = StyleSheet.create({
   linkBold: {
     color: "#c9b99a",
     fontWeight: "600",
-  },
-  passwordContainer: {
-  flexDirection: "row",
-  alignItems: "center",
-  borderBottomWidth: 1,
-  borderBottomColor: "#333",
-  },
-  inputPassword: {
-    flex: 1,
-    color: "#ffffff",
-    fontSize: 15,
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-  },
-  mostraBtn: {
-    color: "#c9b99a",
-    fontSize: 9,
-    letterSpacing: 2,
   },
 });
