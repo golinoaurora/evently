@@ -1,6 +1,7 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   ActivityIndicator,
   Dimensions,
@@ -11,70 +12,47 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import BASE_URL from "../config/api";
 
-const { width } = Dimensions.get("window");
-
-const API_URL = `${BASE_URL}/login.php`;
+const { width, height } = Dimensions.get("window");
 
 export default function Login() {
   const router = useRouter();
-
-  const [mostraPassword, setMostraPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [mostraPassword, setMostraPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function handleLogin() {
-    // Controllo campi vuoti
     if (!email || !password) {
       setError("Inserisci email e password");
       return;
     }
-
     setLoading(true);
     setError("");
-
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch(`${BASE_URL}/login.php`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          Email: email,
-          PasswordUtente: password,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ Email: email, PasswordUtente: password }),
       });
-
       const data = await response.json();
-
       if (data.success) {
         await AsyncStorage.setItem("IDUtente", String(data.IDUtente));
         await AsyncStorage.setItem("tipo", data.tipo);
         await AsyncStorage.setItem("IDPrivato", String(data.IDPrivato ?? ""));
-        if (data.tipo === "admin") {
-          router.replace("/admin");
-        } else if (data.tipo === "locale") {
-          // Controlliamo se ha già un luogo
-          const response = await fetch(`${BASE_URL}/controlla-luogo.php?IDUtente=${data.IDUtente}`);
-          const luogoData = await response.json();
-          if (luogoData.haLuogo) {
-            router.replace("/locale");
-          } else {
-            router.replace("/crea-luogo");
-          }
-        } else {
-          router.replace("/home");
-        }
+        if (data.tipo === "admin") router.replace("/admin");
+        else if (data.tipo === "locale") {
+          const r = await fetch(`${BASE_URL}/controlla-luogo.php?IDUtente=${data.IDUtente}`);
+          const d = await r.json();
+          router.replace(d.haLuogo ? "/locale" : "/crea-luogo");
+        } else router.replace("/home");
       } else {
-        // Mostra il messaggio di errore dal backend
         setError(data.message);
       }
-
     } catch (e) {
       setError("Errore di connessione. Controlla il server.");
     } finally {
@@ -83,83 +61,114 @@ export default function Login() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Linea decorativa top */}
-        <View style={styles.lineTop} />
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
 
-        {/* Titolo */}
+        {/* Sfondo con glow colorati */}
+        <View style={styles.glowPink} />
+        <View style={styles.glowBlue} />
+        <View style={styles.glowGreen} />
+
+        {/* Header con badge */}
         <View style={styles.header}>
-          <Text style={styles.title}>EVENTLY</Text>
-          <View style={styles.titleUnderline} />
-          <Text style={styles.subtitle}>Accedi al tuo account</Text>
+          <View style={styles.badge}>
+            <View style={styles.badgeDot} />
+            <Text style={styles.badgeText}>REGGIO EMILIA</Text>
+          </View>
+
+          <Text style={styles.title}>EVEN<Text style={styles.titleAccent}>TLY</Text></Text>
+          <Text style={styles.tagline}>YOUR NIGHT STARTS HERE</Text>
+
+          {/* Linee decorative colorate */}
+          <View style={styles.colorLines}>
+            <View style={[styles.colorLine, { backgroundColor: "#FF1493", width: 40 }]} />
+            <View style={[styles.colorLine, { backgroundColor: "#39FF6E", width: 24 }]} />
+            <View style={[styles.colorLine, { backgroundColor: "#1E50FF", width: 32 }]} />
+          </View>
         </View>
 
         {/* Form */}
         <View style={styles.form}>
+          <Text style={styles.formTitle}>Accedi</Text>
 
-          {/* Campo Email */}
-          <Text style={styles.label}>EMAIL</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="la tua email"
-            placeholderTextColor="#555"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-
-          {/* Campo Password */}
-          <Text style={styles.label}>PASSWORD</Text>
-          <View style={styles.passwordContainer}>
+          {/* Email */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>EMAIL</Text>
+            <View style={styles.inputWrapper}>
               <TextInput
-                style={styles.inputPassword}
-                placeholder="la tua password"
-                placeholderTextColor="#555"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!mostraPassword}
+                style={styles.input}
+                placeholder="la tua email"
+                placeholderTextColor="#2a2a2a"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
               />
-              <TouchableOpacity onPress={() => setMostraPassword(!mostraPassword)}>
-                <Text style={styles.mostraBtn}>{mostraPassword ? "NASCONDI" : "MOSTRA"}</Text>
-              </TouchableOpacity>
+              <View style={styles.inputAccent} />
+            </View>
           </View>
 
-          {/* Messaggio di errore */}
+          {/* Password */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>PASSWORD</Text>
+            <View style={styles.inputWrapper}>
+              <View style={styles.passwordRow}>
+                <TextInput
+                  style={[styles.input, { flex: 1 }]}
+                  placeholder="la tua password"
+                  placeholderTextColor="#2a2a2a"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!mostraPassword}
+                />
+                <TouchableOpacity onPress={() => setMostraPassword(!mostraPassword)}>
+                  <Text style={styles.mostraBtn}>{mostraPassword ? "NASCONDI" : "MOSTRA"}</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.inputAccent} />
+            </View>
+          </View>
+
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
-          {/* Bottone Login */}
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#0a0a0a" />
-            ) : (
-              <Text style={styles.buttonText}>ACCEDI</Text>
-            )}
+          {/* Bottone principale */}
+          <TouchableOpacity style={styles.btnPrimary} onPress={handleLogin} disabled={loading}>
+            <LinearGradient
+              colors={["#FF1493", "#C800FF"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.btnGradient}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.btnPrimaryText}>ACCEDI →</Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
 
-          {/* Link registrazione */}
-          <TouchableOpacity onPress={() => router.push("/register")}>
-            <Text style={styles.link}>
-              Non hai un account?{" "}
-              <Text style={styles.linkBold}>Registrati</Text>
-            </Text>
-          </TouchableOpacity>
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>OPPURE</Text>
+            <View style={styles.dividerLine} />
+          </View>
 
+          {/* Bottone secondario */}
+          <TouchableOpacity style={styles.btnSecondary} onPress={() => router.push("/register")}>
+            <Text style={styles.btnSecondaryText}>CREA ACCOUNT</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Linea decorativa bottom */}
-        <View style={styles.lineBottom} />
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>EVENTLY © 2026</Text>
+          <View style={styles.footerDots}>
+            <View style={[styles.dot, { backgroundColor: "#FF1493" }]} />
+            <View style={[styles.dot, { backgroundColor: "#39FF6E" }]} />
+            <View style={[styles.dot, { backgroundColor: "#1E50FF" }]} />
+          </View>
+        </View>
 
       </ScrollView>
     </KeyboardAvoidingView>
@@ -169,113 +178,202 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: "#000",
+    padding: 28,
     justifyContent: "center",
-    alignItems: "center",
-    padding: 30,
+    minHeight: height,
   },
-  lineTop: {
+  glowPink: {
     position: "absolute",
-    top: 60,
-    width: width * 0.4,
-    height: 1,
-    backgroundColor: "#c9b99a",
-    opacity: 0.5,
+    top: -100,
+    right: -80,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: "rgba(255,20,147,0.12)",
   },
-  lineBottom: {
+  glowBlue: {
     position: "absolute",
-    bottom: 60,
-    width: width * 0.4,
-    height: 1,
-    backgroundColor: "#c9b99a",
-    opacity: 0.5,
+    bottom: 100,
+    left: -80,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: "rgba(30,80,255,0.1)",
+  },
+  glowGreen: {
+    position: "absolute",
+    top: "40%",
+    right: -60,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: "rgba(57,255,110,0.06)",
   },
   header: {
+    marginBottom: 48,
+  },
+  badge: {
+    flexDirection: "row",
     alignItems: "center",
-    marginBottom: 50,
+    gap: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#1a1a1a",
+    borderRadius: 100,
+    alignSelf: "flex-start",
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+  },
+  badgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#39FF6E",
+  },
+  badgeText: {
+    color: "#444",
+    fontSize: 9,
+    letterSpacing: 4,
   },
   title: {
-    color: "#ffffff",
-    fontSize: 36,
-    fontWeight: "200",
-    letterSpacing: 12,
+    fontSize: 56,
+    fontWeight: "900",
+    color: "#fff",
+    letterSpacing: -2,
+    lineHeight: 60,
   },
-  titleUnderline: {
-    width: 40,
-    height: 1,
-    backgroundColor: "#c9b99a",
-    marginTop: 10,
-    marginBottom: 14,
+  titleAccent: {
+    color: "#FF1493",
   },
-  subtitle: {
-    color: "#c9b99a",
-    fontSize: 11,
-    letterSpacing: 4,
-    fontWeight: "300",
+  tagline: {
+    color: "#1a1a1a",
+    fontSize: 10,
+    letterSpacing: 5,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  colorLines: {
+    flexDirection: "column",
+    gap: 4,
+  },
+  colorLine: {
+    height: 2,
+    borderRadius: 1,
   },
   form: {
-    width: "100%",
+    marginBottom: 32,
+  },
+  formTitle: {
+    color: "#fff",
+    fontSize: 24,
+    fontWeight: "700",
+    marginBottom: 32,
+    letterSpacing: -0.5,
+  },
+  inputGroup: {
+    marginBottom: 28,
   },
   label: {
-    color: "#c9b99a",
-    fontSize: 10,
-    letterSpacing: 3,
-    marginBottom: 8,
-    marginTop: 16,
+    color: "#2a2a2a",
+    fontSize: 9,
+    letterSpacing: 4,
+    marginBottom: 10,
+  },
+  inputWrapper: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#1a1a1a",
+  },
+  passwordRow: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   input: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#333",
-    color: "#ffffff",
+    color: "#fff",
     fontSize: 15,
-    paddingVertical: 12,
-    paddingHorizontal: 4,
+    fontWeight: "300",
+    paddingVertical: 10,
+  },
+  inputAccent: {
+    height: 1,
+    width: 30,
+    backgroundColor: "#FF1493",
+    marginTop: -1,
+  },
+  mostraBtn: {
+    color: "#FF1493",
+    fontSize: 9,
+    letterSpacing: 2,
   },
   error: {
-    color: "#e07070",
+    color: "#FF1493",
     fontSize: 12,
     textAlign: "center",
-    marginTop: 16,
+    marginBottom: 16,
     letterSpacing: 1,
   },
-  button: {
-    backgroundColor: "#c9b99a",
-    paddingVertical: 16,
-    alignItems: "center",
-    marginTop: 36,
-    marginBottom: 24,
+  btnPrimary: {
+    borderRadius: 14,
+    overflow: "hidden",
+    marginTop: 8,
+    marginBottom: 16,
   },
-  buttonText: {
-    color: "#0a0a0a",
-    fontSize: 12,
+  btnGradient: {
+    padding: 18,
+    alignItems: "center",
+  },
+  btnPrimaryText: {
+    color: "#fff",
+    fontSize: 13,
     fontWeight: "700",
     letterSpacing: 4,
   },
-  link: {
-    color: "#555",
-    textAlign: "center",
-    fontSize: 13,
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    marginBottom: 16,
   },
-  linkBold: {
-    color: "#c9b99a",
-    fontWeight: "600",
-  },
-  passwordContainer: {
-  flexDirection: "row",
-  alignItems: "center",
-  borderBottomWidth: 1,
-  borderBottomColor: "#333",
-  },
-  inputPassword: {
+  dividerLine: {
     flex: 1,
-    color: "#ffffff",
-    fontSize: 15,
-    paddingVertical: 12,
-    paddingHorizontal: 4,
+    height: 1,
+    backgroundColor: "#111",
   },
-  mostraBtn: {
-    color: "#c9b99a",
+  dividerText: {
+    color: "#222",
+    fontSize: 10,
+    letterSpacing: 3,
+  },
+  btnSecondary: {
+    borderWidth: 1,
+    borderColor: "#1a1a1a",
+    borderRadius: 14,
+    padding: 18,
+    alignItems: "center",
+  },
+  btnSecondaryText: {
+    color: "#333",
+    fontSize: 12,
+    fontWeight: "500",
+    letterSpacing: 4,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  footerText: {
+    color: "#1a1a1a",
     fontSize: 9,
-    letterSpacing: 2,
+    letterSpacing: 3,
+  },
+  footerDots: {
+    flexDirection: "row",
+    gap: 5,
+  },
+  dot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
   },
 });

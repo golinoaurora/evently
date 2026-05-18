@@ -24,11 +24,9 @@ if(!$IDRichiesta || !$stato || !$IDUtente) {
 }
 
 try {
-    // Aggiorna stato richiesta
     $stm = $pdo->prepare("UPDATE RichiestaEvento SET Stato = :stato WHERE ID = :id");
     $stm->execute([":stato" => $stato, ":id" => $IDRichiesta]);
 
-    // Prendiamo i dati della richiesta incluso IDUtente del privato
     $stm = $pdo->prepare("
         SELECT r.*, l.IDLocale, p.IDUtente AS IDUtentePrivato
         FROM RichiestaEvento r
@@ -42,20 +40,21 @@ try {
 
     if($stato === "approvato") {
         $stm = $pdo->prepare("
-            INSERT INTO Evento (Titolo, Descrizione, DataEvento, Ora, Prezzo, MaxPartecipanti, IDLuogo, IDLocale, IDPrivato)
-            VALUES (:titolo, :desc, :data, '20:00:00', 0, :maxP, :luogo, :locale, :privato)
+            INSERT INTO Evento (Titolo, Descrizione, DataEvento, Ora, Prezzo, MaxPartecipanti, IDLuogo, IDLocale, IDPrivato, Categoria)
+            VALUES (:titolo, :desc, :data, :ora, 0, :maxP, :luogo, :locale, :privato, :categoria)
         ");
         $stm->execute([
             ":titolo" => $richiesta["Titolo"],
             ":desc" => $richiesta["Messaggio"] ?? "Evento privato",
             ":data" => $richiesta["DataEvento"],
+            ":ora" => $richiesta["Ora"] ?? "20:00:00",
             ":maxP" => $richiesta["NumeroPartecipanti"],
             ":luogo" => $richiesta["IDLuogo"],
             ":locale" => $richiesta["IDLocale"],
             ":privato" => $richiesta["IDPrivato"],
+            ":categoria" => $richiesta["Categoria"] ?? "ALTRO",
         ]);
 
-        // Notifica al privato che ha organizzato l'evento
         creaNotifica(
             $pdo,
             $richiesta["IDUtentePrivato"],

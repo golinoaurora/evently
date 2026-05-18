@@ -21,6 +21,8 @@ $ora = $data["Ora"] ?? "";
 $prezzo = $data["Prezzo"] ?? 0;
 $maxPartecipanti = $data["MaxPartecipanti"] ?? 0;
 $IDUtente = $data["IDUtente"] ?? null;
+$categoria = $data["Categoria"] ?? "ALTRO";
+$imageUrl = $data["ImageUrl"] ?? null;
 
 if(!$titolo || !$descrizione || !$dataEvento || !$ora || !$IDUtente) {
     echo json_encode(["success" => false, "message" => "Dati mancanti"]);
@@ -28,7 +30,6 @@ if(!$titolo || !$descrizione || !$dataEvento || !$ora || !$IDUtente) {
 }
 
 try {
-    // Troviamo IDLocale e IDLuogo automaticamente
     $stm = $pdo->prepare("
         SELECT loc.ID AS IDLocale, l.ID AS IDLuogo
         FROM Locale loc
@@ -45,10 +46,9 @@ try {
         exit;
     }
 
-    // Inseriamo l'evento
     $stm = $pdo->prepare("
-        INSERT INTO Evento (Titolo, Descrizione, DataEvento, Ora, Prezzo, MaxPartecipanti, IDLuogo, IDLocale)
-        VALUES (:titolo, :desc, :data, :ora, :prezzo, :maxP, :luogo, :locale)
+        INSERT INTO Evento (Titolo, Descrizione, DataEvento, Ora, Prezzo, MaxPartecipanti, IDLuogo, IDLocale, Categoria, ImageUrl)
+        VALUES (:titolo, :desc, :data, :ora, :prezzo, :maxP, :luogo, :locale, :categoria, :imageUrl)
     ");
     $stm->execute([
         ":titolo" => $titolo,
@@ -59,9 +59,10 @@ try {
         ":maxP" => $maxPartecipanti,
         ":luogo" => $locale["IDLuogo"],
         ":locale" => $locale["IDLocale"],
+        ":categoria" => $categoria,
+        ":imageUrl" => $imageUrl,
     ]);
 
-    // Notifica a tutti i privati
     $stm = $pdo->prepare("SELECT IDUtente FROM Privato");
     $stm->execute();
     $privati = $stm->fetchAll(PDO::FETCH_ASSOC);

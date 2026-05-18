@@ -20,6 +20,7 @@ $numPartecipanti = $data["NumeroPartecipanti"] ?? "";
 $messaggio = $data["Messaggio"] ?? "";
 $IDLuogo = $data["IDLuogo"] ?? null;
 $IDUtente = $data["IDUtente"] ?? null;
+$categoria = $data["Categoria"] ?? "ALTRO";
 
 if(!$titolo || !$dataEvento || !$ora || !$numPartecipanti || !$IDLuogo || !$IDUtente) {
     echo json_encode(["success" => false, "message" => "Dati mancanti"]);
@@ -38,8 +39,8 @@ try {
     }
 
     $stm = $pdo->prepare("
-        INSERT INTO RichiestaEvento (Titolo, DataEvento, Ora, NumeroPartecipanti, Messaggio, Stato, IDLuogo, IDPrivato)
-        VALUES (:titolo, :data, :ora, :num, :msg, 'in_attesa', :luogo, :privato)
+        INSERT INTO RichiestaEvento (Titolo, DataEvento, Ora, NumeroPartecipanti, Messaggio, Stato, IDLuogo, IDPrivato, Categoria)
+        VALUES (:titolo, :data, :ora, :num, :msg, 'in_attesa', :luogo, :privato, :categoria)
     ");
 
     $stm->execute([
@@ -50,6 +51,7 @@ try {
         ":msg" => $messaggio,
         ":luogo" => $IDLuogo,
         ":privato" => $privato["ID"],
+        ":categoria" => $categoria,
     ]);
 
     echo json_encode([

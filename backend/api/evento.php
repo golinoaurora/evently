@@ -22,6 +22,7 @@ try {
     $stm = $pdo->prepare("
         SELECT e.ID, e.Titolo, e.Descrizione, e.DataEvento,
                e.Ora, e.Prezzo, e.MaxPartecipanti, e.IDPrivato,
+               e.Categoria, e.ImageUrl,
                l.Nome AS NomeLuogo, l.Via, l.NumeroCivico, l.Citta, l.CAP,
                COUNT(DISTINCT p.ID) AS Iscritti
         FROM Evento e

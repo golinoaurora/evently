@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -38,42 +39,63 @@ export default function Notifiche() {
     }
   }
 
-  function getIcona(tipo) {
+  function getIconaConfig(tipo) {
     switch(tipo) {
-      case "richiesta_approvata": return "✅";
-      case "richiesta_rifiutata": return "❌";
-      case "nuovo_evento": return "🎉";
-      default: return "🔔";
+      case "richiesta_accettata": return { name: "checkmark-circle", color: "#39FF6E" };
+      case "richiesta_rifiutata": return { name: "close-circle", color: "#FF1493" };
+      case "nuovo_evento": return { name: "star", color: "#C9A96E" };
+      default: return { name: "notifications", color: "#1E50FF" };
     }
+  }
+
+  function formatData(dataStr) {
+    const d = new Date(dataStr);
+    return d.toLocaleDateString("it-IT", {
+      day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
+    });
   }
 
   return (
     <View style={styles.container}>
+      <View style={styles.glowPink} />
+
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <Text style={styles.backText}>← INDIETRO</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>NOTIFICHE</Text>
-        <View style={styles.titleUnderline} />
+        <Text style={styles.title}>NOTIFI<Text style={styles.titleAccent}>CHE</Text></Text>
+        <View style={styles.colorLines}>
+          <View style={[styles.colorLine, { backgroundColor: "#FF1493", width: 30 }]} />
+          <View style={[styles.colorLine, { backgroundColor: "#1E50FF", width: 18 }]} />
+        </View>
       </View>
 
       {loading ? (
-        <ActivityIndicator color="#c9b99a" style={{ marginTop: 40 }} />
+        <ActivityIndicator color="#FF1493" style={{ marginTop: 40 }} />
       ) : error ? (
-        <Text style={styles.error}>{error}</Text>
+        <Text style={styles.errorText}>{error}</Text>
       ) : notifiche.length === 0 ? (
-        <Text style={styles.empty}>Nessuna notifica</Text>
+        <View style={styles.emptyContainer}>
+          <Ionicons name="notifications-outline" size={48} color="#333" />
+          <Text style={styles.emptyText}>Nessuna notifica</Text>
+        </View>
       ) : (
         <ScrollView contentContainerStyle={styles.lista}>
-          {notifiche.map((n) => (
-            <View key={n.ID} style={[styles.card, n.letta == 0 && styles.cardNonLetta]}>
-              <Text style={styles.cardIcona}>{getIcona(n.tipo)}</Text>
-              <View style={styles.cardContent}>
-                <Text style={styles.cardMessaggio}>{n.messaggio}</Text>
-                <Text style={styles.cardData}>{n.DataCreazione}</Text>
+          {notifiche.map((n) => {
+            const icona = getIconaConfig(n.tipo);
+            return (
+              <View key={n.ID} style={[styles.card, n.letta == 0 && styles.cardNonLetta]}>
+                <View style={[styles.iconaBox, { backgroundColor: icona.color + "20" }]}>
+                  <Ionicons name={icona.name} size={22} color={icona.color} />
+                </View>
+                <View style={styles.cardContent}>
+                  <Text style={styles.cardMessaggio}>{n.messaggio}</Text>
+                  <Text style={styles.cardData}>{formatData(n.DataCreazione)}</Text>
+                </View>
+                {n.letta == 0 && <View style={styles.puntino} />}
               </View>
-            </View>
-          ))}
+            );
+          })}
         </ScrollView>
       )}
     </View>
@@ -81,80 +103,24 @@ export default function Notifiche() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#0a0a0a",
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 30,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#1a1a1a",
-  },
-  backBtn: {
-    marginBottom: 16,
-  },
-  backText: {
-    color: "#c9b99a",
-    fontSize: 10,
-    letterSpacing: 3,
-  },
-  title: {
-    color: "#ffffff",
-    fontSize: 20,
-    fontWeight: "200",
-    letterSpacing: 6,
-  },
-  titleUnderline: {
-    width: 30,
-    height: 1,
-    backgroundColor: "#c9b99a",
-    marginTop: 10,
-  },
-  lista: {
-    padding: 20,
-    paddingBottom: 60,
-  },
-  card: {
-    flexDirection: "row",
-    borderWidth: 1,
-    borderColor: "#1a1a1a",
-    padding: 16,
-    marginBottom: 12,
-    backgroundColor: "#0f0f0f",
-    alignItems: "center",
-  },
-  cardNonLetta: {
-    borderColor: "#c9b99a",
-  },
-  cardIcona: {
-    fontSize: 24,
-    marginRight: 16,
-  },
-  cardContent: {
-    flex: 1,
-  },
-  cardMessaggio: {
-    color: "#ffffff",
-    fontSize: 13,
-    fontWeight: "300",
-    marginBottom: 4,
-  },
-  cardData: {
-    color: "#555",
-    fontSize: 11,
-  },
-  empty: {
-    color: "#555",
-    textAlign: "center",
-    marginTop: 60,
-    fontSize: 13,
-    letterSpacing: 2,
-  },
-  error: {
-    color: "#e07070",
-    textAlign: "center",
-    marginTop: 40,
-  },
+  container: { flex: 1, backgroundColor: "#000" },
+  glowPink: { position: "absolute", top: -60, right: -40, width: 180, height: 180, borderRadius: 90, backgroundColor: "rgba(255,20,147,0.08)" },
+  header: { paddingTop: 60, paddingHorizontal: 24, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: "#0f0f0f" },
+  backBtn: { marginBottom: 16 },
+  backText: { color: "#FF1493", fontSize: 10, letterSpacing: 3 },
+  title: { color: "#fff", fontSize: 24, fontWeight: "900", letterSpacing: -0.5, marginBottom: 10 },
+  titleAccent: { color: "#FF1493" },
+  colorLines: { flexDirection: "column", gap: 3 },
+  colorLine: { height: 2, borderRadius: 1 },
+  lista: { padding: 20, paddingBottom: 60 },
+  card: { flexDirection: "row", alignItems: "center", backgroundColor: "#0a0a0a", borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "#111", gap: 14 },
+  cardNonLetta: { borderColor: "#FF1493" },
+  iconaBox: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  cardContent: { flex: 1 },
+  cardMessaggio: { color: "#fff", fontSize: 13, fontWeight: "300", marginBottom: 4, lineHeight: 18 },
+  cardData: { color: "#333", fontSize: 10, letterSpacing: 1 },
+  puntino: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#FF1493" },
+  emptyContainer: { flex: 1, alignItems: "center", justifyContent: "center", marginTop: 80 },
+  emptyText: { color: "#333", textAlign: "center", marginTop: 16, fontSize: 13, letterSpacing: 2 },
+  errorText: { color: "#FF1493", textAlign: "center", marginTop: 40 },
 });

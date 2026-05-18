@@ -1,6 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useCallback, useState } from "react"; // ← modificato
-import { useFocusEffect } from "expo-router";   // ← aggiunto
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import {
   ActivityIndicator,
   ScrollView,
@@ -17,7 +19,6 @@ export default function Locale() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // ← sostituito useEffect con useFocusEffect
   useFocusEffect(
     useCallback(() => {
       caricaRichieste();
@@ -47,11 +48,7 @@ export default function Locale() {
       const response = await fetch(`${BASE_URL}/gestisci-richiesta-locale.php`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          IDRichiesta: IDRichiesta,
-          Stato: stato,
-          IDUtente: IDUtente,
-        }),
+        body: JSON.stringify({ IDRichiesta, Stato: stato, IDUtente }),
       });
       const data = await response.json();
       if (data.success) {
@@ -64,48 +61,92 @@ export default function Locale() {
     }
   }
 
-  // tutto il return rimane IDENTICO al tuo
   return (
     <View style={styles.container}>
+      <View style={styles.glowPink} />
+      <View style={styles.glowBlue} />
 
       <View style={styles.header}>
-        <Text style={styles.title}>EVENTLY</Text>
-        <View style={styles.titleUnderline} />
-        <Text style={styles.subtitle}>PANNELLO LOCALE</Text>
+        <View style={styles.headerTop}>
+          <View>
+            <Text style={styles.headerTitle}>EVEN<Text style={styles.headerAccent}>TLY</Text></Text>
+            <View style={styles.colorLines}>
+              <View style={[styles.colorLine, { backgroundColor: "#FF1493", width: 30 }]} />
+              <View style={[styles.colorLine, { backgroundColor: "#39FF6E", width: 18 }]} />
+              <View style={[styles.colorLine, { backgroundColor: "#1E50FF", width: 24 }]} />
+            </View>
+          </View>
+          <View style={styles.localeBadge}>
+            <Ionicons name="storefront-outline" size={14} color="#39FF6E" />
+            <Text style={styles.localeBadgeText}>LOCALE</Text>
+          </View>
+        </View>
+        <Text style={styles.headerSub}>Richieste da approvare</Text>
       </View>
 
       {loading ? (
-        <ActivityIndicator color="#c9b99a" style={{ marginTop: 40 }} />
+        <ActivityIndicator color="#FF1493" style={{ marginTop: 40 }} />
       ) : error ? (
-        <Text style={styles.error}>{error}</Text>
+        <Text style={styles.errorText}>{error}</Text>
       ) : richieste.length === 0 ? (
-        <Text style={styles.empty}>Nessuna richiesta da gestire</Text>
+        <View style={styles.emptyContainer}>
+          <Ionicons name="checkmark-circle-outline" size={48} color="#333" />
+          <Text style={styles.emptyText}>Nessuna richiesta da gestire</Text>
+        </View>
       ) : (
         <ScrollView contentContainerStyle={styles.lista}>
           {richieste.map((r) => (
             <View key={r.ID} style={styles.card}>
-              <Text style={styles.cardTitolo}>{r.Titolo}</Text>
-              <Text style={styles.cardInfo}>👤 {r.NomeUtente}</Text>
-              <Text style={styles.cardInfo}>📅 {r.DataEvento}</Text>
-              <Text style={styles.cardInfo}>👥 {r.NumeroPartecipanti} partecipanti</Text>
-              {r.Messaggio ? (
-                <Text style={styles.cardMessaggio}>"{r.Messaggio}"</Text>
-              ) : null}
+              <LinearGradient
+                colors={["#39FF6E", "#1E50FF"]}
+                style={styles.cardAccent}
+              />
+              <View style={styles.cardBody}>
+                <Text style={styles.cardTitolo}>{r.Titolo}</Text>
 
-              <View style={styles.bttns}>
-                <TouchableOpacity
-                  style={styles.btnApprova}
-                  onPress={() => handleDecisione(r.ID, "approvato")}
-                >
-                  <Text style={styles.btnApprovaText}>✓ APPROVA</Text>
-                </TouchableOpacity>
+                <View style={styles.cardInfoRow}>
+                  <Ionicons name="person-outline" size={12} color="#39FF6E" />
+                  <Text style={styles.cardInfo}>{r.NomeUtente}</Text>
+                </View>
+                <View style={styles.cardInfoRow}>
+                  <Ionicons name="calendar-outline" size={12} color="#39FF6E" />
+                  <Text style={styles.cardInfo}>{r.DataEvento}</Text>
+                </View>
+                <View style={styles.cardInfoRow}>
+                  <Ionicons name="people-outline" size={12} color="#39FF6E" />
+                  <Text style={styles.cardInfo}>{r.NumeroPartecipanti} partecipanti</Text>
+                </View>
 
-                <TouchableOpacity
-                  style={styles.btnRifiuta}
-                  onPress={() => handleDecisione(r.ID, "rifiutato")}
-                >
-                  <Text style={styles.btnRifiutaText}>✗ RIFIUTA</Text>
-                </TouchableOpacity>
+                {r.Messaggio ? (
+                  <View style={styles.messaggioBox}>
+                    <Text style={styles.cardMessaggio}>"{r.Messaggio}"</Text>
+                  </View>
+                ) : null}
+
+                <View style={styles.bttns}>
+                  <TouchableOpacity
+                    style={styles.btnApprova}
+                    onPress={() => handleDecisione(r.ID, "approvato")}
+                  >
+                    <LinearGradient
+                      colors={["#39FF6E", "#00C853"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.btnGradient}
+                    >
+                      <Ionicons name="checkmark" size={14} color="#000" />
+                      <Text style={styles.btnApprovaText}>APPROVA</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.btnRifiuta}
+                    onPress={() => handleDecisione(r.ID, "rifiutato")}
+                  >
+                    <Ionicons name="close" size={14} color="#FF1493" />
+                    <Text style={styles.btnRifiutaText}>RIFIUTA</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           ))}
@@ -113,30 +154,39 @@ export default function Locale() {
       )}
 
       <BottomBar paginaAttiva="locale" />
-
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0a0a0a" },
-  header: {
-    alignItems: "center", paddingTop: 60, paddingBottom: 20,
-    borderBottomWidth: 1, borderBottomColor: "#1a1a1a",
-  },
-  title: { color: "#ffffff", fontSize: 24, fontWeight: "200", letterSpacing: 10 },
-  titleUnderline: { width: 30, height: 1, backgroundColor: "#c9b99a", marginTop: 8, marginBottom: 8 },
-  subtitle: { color: "#c9b99a", fontSize: 9, letterSpacing: 4 },
+  container: { flex: 1, backgroundColor: "#000" },
+  glowPink: { position: "absolute", top: -60, right: -40, width: 180, height: 180, borderRadius: 90, backgroundColor: "rgba(255,20,147,0.08)" },
+  glowBlue: { position: "absolute", top: 300, left: -60, width: 160, height: 160, borderRadius: 80, backgroundColor: "rgba(30,80,255,0.06)" },
+  header: { paddingTop: 60, paddingHorizontal: 24, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: "#0f0f0f" },
+  headerTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 },
+  headerTitle: { color: "#fff", fontSize: 28, fontWeight: "900", letterSpacing: -1, marginBottom: 8 },
+  headerAccent: { color: "#FF1493" },
+  colorLines: { flexDirection: "column", gap: 3 },
+  colorLine: { height: 2, borderRadius: 1 },
+  localeBadge: { flexDirection: "row", alignItems: "center", gap: 6, borderWidth: 1, borderColor: "#39FF6E", borderRadius: 100, paddingVertical: 5, paddingHorizontal: 12 },
+  localeBadgeText: { color: "#39FF6E", fontSize: 9, letterSpacing: 3 },
+  headerSub: { color: "#333", fontSize: 11, letterSpacing: 1 },
   lista: { padding: 20, paddingBottom: 100 },
-  card: { borderWidth: 1, borderColor: "#1a1a1a", padding: 20, marginBottom: 16, backgroundColor: "#0f0f0f" },
-  cardTitolo: { color: "#ffffff", fontSize: 18, fontWeight: "300", letterSpacing: 1, marginBottom: 12 },
-  cardInfo: { color: "#888", fontSize: 12, marginBottom: 4 },
-  cardMessaggio: { color: "#555", fontSize: 12, fontStyle: "italic", marginTop: 8, marginBottom: 8 },
-  bttns: { flexDirection: "row", gap: 12, marginTop: 16 },
-  btnApprova: { flex: 1, backgroundColor: "#c9b99a", paddingVertical: 12, alignItems: "center" },
-  btnApprovaText: { color: "#0a0a0a", fontSize: 10, fontWeight: "700", letterSpacing: 2 },
-  btnRifiuta: { flex: 1, borderWidth: 1, borderColor: "#e07070", paddingVertical: 12, alignItems: "center" },
-  btnRifiutaText: { color: "#e07070", fontSize: 10, fontWeight: "700", letterSpacing: 2 },
-  empty: { color: "#555", textAlign: "center", marginTop: 60, fontSize: 13, letterSpacing: 2 },
-  error: { color: "#e07070", textAlign: "center", marginTop: 40 },
+  card: { flexDirection: "row", backgroundColor: "#0a0a0a", borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: "#111", overflow: "hidden" },
+  cardAccent: { width: 3 },
+  cardBody: { flex: 1, padding: 16 },
+  cardTitolo: { color: "#fff", fontSize: 17, fontWeight: "700", letterSpacing: -0.3, marginBottom: 12 },
+  cardInfoRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 6 },
+  cardInfo: { color: "#555", fontSize: 12 },
+  messaggioBox: { backgroundColor: "#0f0f0f", borderRadius: 8, padding: 12, marginTop: 8, borderLeftWidth: 2, borderLeftColor: "#39FF6E" },
+  cardMessaggio: { color: "#444", fontSize: 12, fontStyle: "italic" },
+  bttns: { flexDirection: "row", gap: 10, marginTop: 16 },
+  btnApprova: { flex: 1, borderRadius: 10, overflow: "hidden" },
+  btnGradient: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 12 },
+  btnApprovaText: { color: "#000", fontSize: 10, fontWeight: "700", letterSpacing: 2 },
+  btnRifiuta: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderWidth: 1, borderColor: "#FF1493", borderRadius: 10, paddingVertical: 12 },
+  btnRifiutaText: { color: "#FF1493", fontSize: 10, fontWeight: "700", letterSpacing: 2 },
+  emptyContainer: { flex: 1, alignItems: "center", justifyContent: "center", marginTop: 80 },
+  emptyText: { color: "#333", textAlign: "center", marginTop: 16, fontSize: 13, letterSpacing: 2 },
+  errorText: { color: "#FF1493", textAlign: "center", marginTop: 40 },
 });

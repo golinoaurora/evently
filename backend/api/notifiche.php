@@ -16,10 +16,10 @@ if (!$IDUtente) {
 
 try {
     $stm = $pdo->prepare("
-        SELECT ID, tipo, messaggio, letta, created_at
+        SELECT ID, tipo, messaggio, letta, DataCreazione
         FROM Notifica
         WHERE IDUtente = :id
-        ORDER BY created_at DESC
+        ORDER BY DataCreazione DESC
         LIMIT 50
     ");
     $stm->bindValue(":id", $IDUtente);
@@ -34,5 +34,5 @@ try {
         "nonLette" => count($nonLette)
     ]);
 } catch (PDOException $e) {
-    echo json_encode(["success" => false, "message" => "Errore server"]);
+    echo json_encode(["success" => false, "message" => $e->getMessage()]);
 }

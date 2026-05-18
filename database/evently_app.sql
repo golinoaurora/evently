@@ -1,52 +1,38 @@
--- Active: 1768374861142@@127.0.0.1@3306@evently
--- ========================================
--- DATABASE EVENTLY
--- ========================================
+DROP DATABASE IF EXISTS evently;
+CREATE DATABASE evently CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE evently;
 
-CREATE DATABASE IF NOT EXISTS Evently;
-USE Evently;
-
--- ========================================
--- CREAZIONE TABELLE
--- ========================================
-
--- Tabella UTENTE
-CREATE TABLE IF NOT EXISTS Utente (
+CREATE TABLE Utente (
   ID int(10) PRIMARY KEY AUTO_INCREMENT,
   Nome varchar(255) NOT NULL,
   Email varchar(255) NOT NULL,
-  PasswordUtente varchar(255) NOT NULL
+  PasswordUtente varchar(255) NOT NULL,
+  avatar_config varchar(50) DEFAULT 'beam',
+  bio varchar(200) NULL,
+  Username varchar(50) NULL
 );
 
--- Tabella PRIVATO
-CREATE TABLE IF NOT EXISTS Privato (
+CREATE TABLE Privato (
   ID int(10) PRIMARY KEY AUTO_INCREMENT,
   IDUtente int(10),
-  FOREIGN KEY (IDUtente) REFERENCES Utente(ID)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE
+  FOREIGN KEY (IDUtente) REFERENCES Utente(ID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Tabella LOCALE
-CREATE TABLE IF NOT EXISTS Locale (
+CREATE TABLE Locale (
   ID int(10) PRIMARY KEY AUTO_INCREMENT,
   IDUtente int(10),
-  FOREIGN KEY (IDUtente) REFERENCES Utente(ID)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE
+  RagioneSociale varchar(255) NULL,
+  PartitaIVA varchar(11) NULL,
+  FOREIGN KEY (IDUtente) REFERENCES Utente(ID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Tabella ADMIN
-CREATE TABLE IF NOT EXISTS Admin (
+CREATE TABLE Admin (
   ID int(10) PRIMARY KEY AUTO_INCREMENT,
   IDUtente int(10),
-  FOREIGN KEY (IDUtente) REFERENCES Utente(ID)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE
+  FOREIGN KEY (IDUtente) REFERENCES Utente(ID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Tabella LUOGO
-CREATE TABLE IF NOT EXISTS Luogo (
+CREATE TABLE Luogo (
   ID int(10) PRIMARY KEY AUTO_INCREMENT,
   Nome varchar(255) NOT NULL,
   Via varchar(255) NOT NULL,
@@ -55,13 +41,10 @@ CREATE TABLE IF NOT EXISTS Luogo (
   CAP varchar(5) NOT NULL,
   Descrizione varchar(255) NOT NULL,
   IDLocale int(10),
-  FOREIGN KEY (IDLocale) REFERENCES Locale(ID)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE
+  FOREIGN KEY (IDLocale) REFERENCES Locale(ID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Tabella EVENTO
-CREATE TABLE IF NOT EXISTS Evento (
+CREATE TABLE Evento (
   ID int(10) PRIMARY KEY AUTO_INCREMENT,
   Titolo varchar(255) NOT NULL,
   Descrizione varchar(255) NOT NULL,
@@ -72,50 +55,57 @@ CREATE TABLE IF NOT EXISTS Evento (
   IDPrivato int(10),
   IDLuogo int(10),
   IDLocale int(10),
-  FOREIGN KEY (IDPrivato) REFERENCES Privato(ID)
-    ON DELETE SET NULL ON UPDATE CASCADE,
-  FOREIGN KEY (IDLuogo) REFERENCES Luogo(ID)
-    ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (IDLocale) REFERENCES Locale(ID)
-    ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (IDPrivato) REFERENCES Privato(ID) ON DELETE SET NULL ON UPDATE CASCADE,
+  FOREIGN KEY (IDLuogo) REFERENCES Luogo(ID) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (IDLocale) REFERENCES Locale(ID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Tabella RICHIESTA_EVENTO
-CREATE TABLE IF NOT EXISTS RichiestaEvento (
+CREATE TABLE RichiestaEvento (
   ID int(10) PRIMARY KEY AUTO_INCREMENT,
   Titolo varchar(255) NOT NULL,
   DataEvento date NOT NULL,
+  Ora time NULL,
   NumeroPartecipanti int(10) NOT NULL,
   Messaggio varchar(255),
   Stato enum('in_attesa','approvato_admin','approvato','rifiutato') DEFAULT 'in_attesa' NOT NULL,
   IDLuogo int(10),
   IDPrivato int(10),
-  FOREIGN KEY (IDLuogo) REFERENCES Luogo(ID)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
-  FOREIGN KEY (IDPrivato) REFERENCES Privato(ID)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE
+  FOREIGN KEY (IDLuogo) REFERENCES Luogo(ID) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (IDPrivato) REFERENCES Privato(ID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Tabella PARTECIPARE
-CREATE TABLE IF NOT EXISTS Partecipare (
+CREATE TABLE Partecipare (
   ID int(10) PRIMARY KEY AUTO_INCREMENT,
   DataIscrizione date NOT NULL,
   IDEvento int(10),
   IDPrivato int(10),
-  FOREIGN KEY (IDEvento) REFERENCES Evento(ID)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
-  FOREIGN KEY (IDPrivato) REFERENCES Privato(ID)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE
+  FOREIGN KEY (IDEvento) REFERENCES Evento(ID) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (IDPrivato) REFERENCES Privato(ID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS Preferiti (
+CREATE TABLE Preferiti (
   ID int(10) PRIMARY KEY AUTO_INCREMENT,
   IDEvento int(10),
   IDPrivato int(10),
   FOREIGN KEY (IDEvento) REFERENCES Evento(ID) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (IDPrivato) REFERENCES Privato(ID) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+CREATE TABLE Notifica (
+  ID int(10) PRIMARY KEY AUTO_INCREMENT,
+  IDUtente int(10) NOT NULL,
+  tipo varchar(50) NOT NULL,
+  messaggio varchar(255) NOT NULL,
+  letta tinyint(1) DEFAULT 0 NOT NULL,
+  DataCreazione timestamp DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (IDUtente) REFERENCES Utente(ID) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- Admin predefiniti
+INSERT INTO Utente (Nome, Email, PasswordUtente) VALUES ('Aurora', 'aurora@evently.it', '$2y$10$M7oMqTyzFgMSvjJQJLRuee1mYaqyeJCJkwNCFTAvZkAwRJGgcg7E2');
+SET @id1 = LAST_INSERT_ID();
+INSERT INTO Admin (IDUtente) VALUES (@id1);
+
+INSERT INTO Utente (Nome, Email, PasswordUtente) VALUES ('Noemi', 'noemi@evently.it', '$2y$10$M7oMqTyzFgMSvjJQJLRuee1mYaqyeJCJkwNCFTAvZkAwRJGgcg7E2');
+SET @id2 = LAST_INSERT_ID();
+INSERT INTO Admin (IDUtente) VALUES (@id2);

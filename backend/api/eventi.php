@@ -14,7 +14,7 @@ require_once("../config/db.php");
 try {
     $stm = $pdo->prepare("
         SELECT e.ID, e.Titolo, e.Descrizione, e.DataEvento, 
-               e.Ora, e.Prezzo, e.MaxPartecipanti,
+               e.Ora, e.Prezzo, e.MaxPartecipanti, e.Categoria, e.ImageUrl,
                l.Nome AS NomeLuogo, l.Via, l.NumeroCivico, l.Citta, l.CAP
         FROM Evento e
         JOIN Luogo l ON l.ID = e.IDLuogo

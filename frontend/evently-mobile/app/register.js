@@ -1,3 +1,4 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -14,7 +15,7 @@ import {
 } from "react-native";
 import BASE_URL from "../config/api";
 
-const { width } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
 const API_URL = `${BASE_URL}/register.php`;
 
 export default function Register() {
@@ -35,29 +36,24 @@ export default function Register() {
       setError("Compila tutti i campi");
       return;
     }
-
     if (tipo === "locale" && (!ragioneSociale || !partitaIVA)) {
       setError("Inserisci ragione sociale e partita IVA");
       return;
     }
-
     if (tipo === "locale" && partitaIVA.length !== 11) {
       setError("La partita IVA deve essere di 11 cifre");
       return;
     }
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError("Inserisci un'email valida");
       return;
     }
-
     const erroriPassword = [];
     if (password.length < 8) erroriPassword.push("almeno 8 caratteri");
     if (!/[A-Z]/.test(password)) erroriPassword.push("una lettera maiuscola");
     if (!/[0-9]/.test(password)) erroriPassword.push("un numero");
     if (!/[!@#$%^&*]/.test(password)) erroriPassword.push("un carattere speciale (!@#$%^&*)");
-
     if (erroriPassword.length > 0) {
       setError("La password deve contenere: " + erroriPassword.join(", "));
       return;
@@ -79,9 +75,7 @@ export default function Register() {
           PartitaIVA: partitaIVA,
         }),
       });
-
       const data = await response.json();
-
       if (data.success) {
         router.replace("/login");
       } else {
@@ -95,131 +89,199 @@ export default function Register() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.lineTop} />
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
 
+        {/* Glow sfondo */}
+        <View style={styles.glowPink} />
+        <View style={styles.glowBlue} />
+        <View style={styles.glowGreen} />
+
+        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>EVENTLY</Text>
-          <View style={styles.titleUnderline} />
-          <Text style={styles.subtitle}>Crea il tuo account</Text>
+          <View style={styles.badge}>
+            <View style={styles.badgeDot} />
+            <Text style={styles.badgeText}>CREA ACCOUNT</Text>
+          </View>
+          <Text style={styles.title}>EVEN<Text style={styles.titleAccent}>TLY</Text></Text>
+          <Text style={styles.tagline}>YOUR NIGHT STARTS HERE</Text>
+          <View style={styles.colorLines}>
+            <View style={[styles.colorLine, { backgroundColor: "#FF1493", width: 40 }]} />
+            <View style={[styles.colorLine, { backgroundColor: "#39FF6E", width: 24 }]} />
+            <View style={[styles.colorLine, { backgroundColor: "#1E50FF", width: 32 }]} />
+          </View>
         </View>
 
+        {/* Form */}
         <View style={styles.form}>
+          <Text style={styles.formTitle}>Registrati</Text>
 
-          <Text style={styles.label}>NOME</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="il tuo nome"
-            placeholderTextColor="#555"
-            value={nome}
-            onChangeText={setNome}
-            autoCapitalize="words"
-          />
-
-          <Text style={styles.label}>EMAIL</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="la tua email"
-            placeholderTextColor="#555"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-
-          <Text style={styles.label}>PASSWORD</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.inputPassword}
-              placeholder="la tua password"
-              placeholderTextColor="#555"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!mostraPassword}
-            />
-            <TouchableOpacity onPress={() => setMostraPassword(!mostraPassword)}>
-              <Text style={styles.mostraBtn}>{mostraPassword ? "NASCONDI" : "MOSTRA"}</Text>
-            </TouchableOpacity>
+          {/* Nome */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>NOME</Text>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                placeholder="il tuo nome"
+                placeholderTextColor="#2a2a2a"
+                value={nome}
+                onChangeText={setNome}
+                autoCapitalize="words"
+              />
+              <View style={styles.inputAccent} />
+            </View>
           </View>
 
+          {/* Email */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>EMAIL</Text>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                placeholder="la tua email"
+                placeholderTextColor="#2a2a2a"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+              <View style={styles.inputAccent} />
+            </View>
+          </View>
+
+          {/* Password */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>PASSWORD</Text>
+            <View style={styles.inputWrapper}>
+              <View style={styles.passwordRow}>
+                <TextInput
+                  style={[styles.input, { flex: 1 }]}
+                  placeholder="la tua password"
+                  placeholderTextColor="#2a2a2a"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!mostraPassword}
+                />
+                <TouchableOpacity onPress={() => setMostraPassword(!mostraPassword)}>
+                  <Text style={styles.mostraBtn}>{mostraPassword ? "NASCONDI" : "MOSTRA"}</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.inputAccent} />
+            </View>
+          </View>
+
+          {/* Tipo account */}
           <Text style={styles.label}>TIPO ACCOUNT</Text>
           <View style={styles.tipoContainer}>
             <TouchableOpacity
               style={[styles.tipoButton, tipo === "privato" && styles.tipoSelected]}
               onPress={() => setTipo("privato")}
             >
-              <Text style={[styles.tipoText, tipo === "privato" && styles.tipoTextSelected]}>
-                PRIVATO
-              </Text>
+              {tipo === "privato" ? (
+                <LinearGradient
+                  colors={["#FF1493", "#C800FF"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.tipoGradient}
+                >
+                  <Text style={styles.tipoTextSelected}>PRIVATO</Text>
+                </LinearGradient>
+              ) : (
+                <Text style={styles.tipoText}>PRIVATO</Text>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.tipoButton, tipo === "locale" && styles.tipoSelected]}
               onPress={() => setTipo("locale")}
             >
-              <Text style={[styles.tipoText, tipo === "locale" && styles.tipoTextSelected]}>
-                LOCALE
-              </Text>
+              {tipo === "locale" ? (
+                <LinearGradient
+                  colors={["#FF1493", "#C800FF"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.tipoGradient}
+                >
+                  <Text style={styles.tipoTextSelected}>LOCALE</Text>
+                </LinearGradient>
+              ) : (
+                <Text style={styles.tipoText}>LOCALE</Text>
+              )}
             </TouchableOpacity>
           </View>
 
-          {/* Campi extra solo per locale */}
+          {/* Campi locale */}
           {tipo === "locale" && (
             <>
-              <Text style={styles.label}>RAGIONE SOCIALE</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="es. Luluma S.r.l."
-                placeholderTextColor="#555"
-                value={ragioneSociale}
-                onChangeText={setRagioneSociale}
-                autoCapitalize="words"
-              />
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>RAGIONE SOCIALE</Text>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="es. Luluma S.r.l."
+                    placeholderTextColor="#2a2a2a"
+                    value={ragioneSociale}
+                    onChangeText={setRagioneSociale}
+                    autoCapitalize="words"
+                  />
+                  <View style={[styles.inputAccent, { backgroundColor: "#39FF6E" }]} />
+                </View>
+              </View>
 
-              <Text style={styles.label}>PARTITA IVA</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="11 cifre"
-                placeholderTextColor="#555"
-                value={partitaIVA}
-                onChangeText={setPartitaIVA}
-                keyboardType="numeric"
-                maxLength={11}
-              />
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>PARTITA IVA</Text>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="11 cifre"
+                    placeholderTextColor="#2a2a2a"
+                    value={partitaIVA}
+                    onChangeText={setPartitaIVA}
+                    keyboardType="numeric"
+                    maxLength={11}
+                  />
+                  <View style={[styles.inputAccent, { backgroundColor: "#39FF6E" }]} />
+                </View>
+              </View>
             </>
           )}
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleRegister}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#0a0a0a" />
-            ) : (
-              <Text style={styles.buttonText}>REGISTRATI</Text>
-            )}
+          {/* Bottone principale */}
+          <TouchableOpacity style={styles.btnPrimary} onPress={handleRegister} disabled={loading}>
+            <LinearGradient
+              colors={["#FF1493", "#C800FF"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.btnGradient}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.btnPrimaryText}>REGISTRATI →</Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
 
+          {/* Link login */}
           <TouchableOpacity onPress={() => router.push("/login")}>
             <Text style={styles.link}>
               Hai già un account?{" "}
               <Text style={styles.linkBold}>Accedi</Text>
             </Text>
           </TouchableOpacity>
-
         </View>
 
-        <View style={styles.lineBottom} />
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>EVENTLY © 2026</Text>
+          <View style={styles.footerDots}>
+            <View style={[styles.dot, { backgroundColor: "#FF1493" }]} />
+            <View style={[styles.dot, { backgroundColor: "#39FF6E" }]} />
+            <View style={[styles.dot, { backgroundColor: "#1E50FF" }]} />
+          </View>
+        </View>
 
       </ScrollView>
     </KeyboardAvoidingView>
@@ -229,83 +291,131 @@ export default function Register() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: "#000",
+    padding: 28,
     justifyContent: "center",
-    alignItems: "center",
-    padding: 30,
+    minHeight: height,
   },
-  lineTop: {
+  glowPink: {
     position: "absolute",
-    top: 60,
-    width: width * 0.4,
-    height: 1,
-    backgroundColor: "#c9b99a",
-    opacity: 0.5,
+    top: -100,
+    right: -80,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: "rgba(255,20,147,0.12)",
   },
-  lineBottom: {
+  glowBlue: {
     position: "absolute",
-    bottom: 60,
-    width: width * 0.4,
-    height: 1,
-    backgroundColor: "#c9b99a",
-    opacity: 0.5,
+    bottom: 100,
+    left: -80,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: "rgba(30,80,255,0.1)",
+  },
+  glowGreen: {
+    position: "absolute",
+    top: "40%",
+    right: -60,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: "rgba(57,255,110,0.06)",
   },
   header: {
-    alignItems: "center",
-    marginBottom: 50,
+    marginBottom: 40,
   },
-  title: {
-    color: "#ffffff",
-    fontSize: 36,
-    fontWeight: "200",
-    letterSpacing: 12,
-  },
-  titleUnderline: {
-    width: 40,
-    height: 1,
-    backgroundColor: "#c9b99a",
-    marginTop: 10,
-    marginBottom: 14,
-  },
-  subtitle: {
-    color: "#c9b99a",
-    fontSize: 11,
-    letterSpacing: 4,
-    fontWeight: "300",
-  },
-  form: {
-    width: "100%",
-  },
-  label: {
-    color: "#c9b99a",
-    fontSize: 10,
-    letterSpacing: 3,
-    marginBottom: 8,
-    marginTop: 16,
-  },
-  input: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#333",
-    color: "#ffffff",
-    fontSize: 15,
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-  },
-  passwordContainer: {
+  badge: {
     flexDirection: "row",
     alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#333",
+    gap: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#1a1a1a",
+    borderRadius: 100,
+    alignSelf: "flex-start",
+    paddingVertical: 6,
+    paddingHorizontal: 14,
   },
-  inputPassword: {
-    flex: 1,
-    color: "#ffffff",
+  badgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#39FF6E",
+  },
+  badgeText: {
+    color: "#444",
+    fontSize: 9,
+    letterSpacing: 4,
+  },
+  title: {
+    fontSize: 52,
+    fontWeight: "900",
+    color: "#fff",
+    letterSpacing: -2,
+    lineHeight: 56,
+  },
+  titleAccent: {
+    color: "#FF1493",
+  },
+  tagline: {
+    color: "#1a1a1a",
+    fontSize: 10,
+    letterSpacing: 5,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  colorLines: {
+    flexDirection: "column",
+    gap: 4,
+  },
+  colorLine: {
+    height: 2,
+    borderRadius: 1,
+  },
+  form: {
+    marginBottom: 32,
+  },
+  formTitle: {
+    color: "#fff",
+    fontSize: 24,
+    fontWeight: "700",
+    marginBottom: 28,
+    letterSpacing: -0.5,
+  },
+  inputGroup: {
+    marginBottom: 24,
+  },
+  label: {
+    color: "#2a2a2a",
+    fontSize: 9,
+    letterSpacing: 4,
+    marginBottom: 10,
+    marginTop: 8,
+  },
+  inputWrapper: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#1a1a1a",
+  },
+  passwordRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  input: {
+    color: "#fff",
     fontSize: 15,
-    paddingVertical: 12,
-    paddingHorizontal: 4,
+    fontWeight: "300",
+    paddingVertical: 10,
+  },
+  inputAccent: {
+    height: 1,
+    width: 30,
+    backgroundColor: "#FF1493",
+    marginTop: -1,
   },
   mostraBtn: {
-    color: "#c9b99a",
+    color: "#FF1493",
     fontSize: 9,
     letterSpacing: 2,
   },
@@ -313,53 +423,87 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     marginTop: 8,
+    marginBottom: 8,
   },
   tipoButton: {
     flex: 1,
-    paddingVertical: 12,
     borderWidth: 1,
-    borderColor: "#333",
+    borderColor: "#1a1a1a",
+    borderRadius: 10,
+    overflow: "hidden",
     alignItems: "center",
   },
   tipoSelected: {
-    borderColor: "#c9b99a",
-    backgroundColor: "#c9b99a22",
+    borderColor: "#FF1493",
+  },
+  tipoGradient: {
+    width: "100%",
+    paddingVertical: 12,
+    alignItems: "center",
   },
   tipoText: {
-    color: "#555",
+    color: "#333",
     fontSize: 10,
     letterSpacing: 3,
+    paddingVertical: 12,
   },
   tipoTextSelected: {
-    color: "#c9b99a",
+    color: "#fff",
+    fontSize: 10,
+    letterSpacing: 3,
+    fontWeight: "700",
   },
   error: {
-    color: "#e07070",
+    color: "#FF1493",
     fontSize: 12,
     textAlign: "center",
-    marginTop: 16,
+    marginBottom: 16,
     letterSpacing: 1,
+    marginTop: 8,
   },
-  button: {
-    backgroundColor: "#c9b99a",
-    paddingVertical: 16,
+  btnPrimary: {
+    borderRadius: 14,
+    overflow: "hidden",
+    marginTop: 24,
+    marginBottom: 20,
+  },
+  btnGradient: {
+    padding: 18,
     alignItems: "center",
-    marginTop: 36,
-    marginBottom: 24,
   },
-  buttonText: {
-    color: "#0a0a0a",
-    fontSize: 12,
+  btnPrimaryText: {
+    color: "#fff",
+    fontSize: 13,
     fontWeight: "700",
     letterSpacing: 4,
   },
   link: {
-    color: "#555",
+    color: "#333",
     textAlign: "center",
     fontSize: 13,
   },
   linkBold: {
-    color: "#c9b99a",
+    color: "#FF1493",
     fontWeight: "600",
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 16,
+  },
+  footerText: {
+    color: "#1a1a1a",
+    fontSize: 9,
+    letterSpacing: 3,
+  },
+  footerDots: {
+    flexDirection: "row",
+    gap: 5,
+  },
+  dot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
   },
 });
