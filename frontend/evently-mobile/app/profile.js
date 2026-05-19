@@ -5,7 +5,6 @@ import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "expo-router";
 import BottomBar from "../components/BottomBar";
-import Avatar from "boring-avatars";
 import {
   ActivityIndicator,
   ScrollView,
@@ -55,14 +54,11 @@ export default function Profile() {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#000" }}>
-
-      {/* Glow */}
       <View style={styles.glowPink} />
       <View style={styles.glowBlue} />
 
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
 
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>EVEN<Text style={styles.headerAccent}>TLY</Text></Text>
           <View style={styles.colorLines}>
@@ -72,15 +68,16 @@ export default function Profile() {
           </View>
         </View>
 
-        {/* Avatar e info utente */}
         <View style={styles.avatarSection}>
           <View style={styles.avatarWrapper}>
-            <Avatar
-              size={90}
-              name={utente?.Nome || "utente"}
-              variant={utente?.avatar_config || "beam"}
-              colors={["#FF1493", "#C800FF", "#1E50FF", "#39FF6E", "#C9A96E"]}
-            />
+            <LinearGradient
+              colors={["#FF1493", "#C800FF"]}
+              style={styles.avatarFallback}
+            >
+              <Text style={styles.avatarInitial}>
+                {utente?.Nome?.[0]?.toUpperCase()}
+              </Text>
+            </LinearGradient>
             <View style={styles.avatarBadge}>
               <View style={styles.avatarBadgeDot} />
             </View>
@@ -99,16 +96,8 @@ export default function Profile() {
           )}
 
           {tipo === "privato" && (
-            <TouchableOpacity
-              style={styles.editBtn}
-              onPress={() => router.push("/modifica-profilo")}
-            >
-              <LinearGradient
-                colors={["#FF1493", "#C800FF"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.editBtnGradient}
-              >
+            <TouchableOpacity style={styles.editBtn} onPress={() => router.push("/modifica-profilo")}>
+              <LinearGradient colors={["#FF1493", "#C800FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.editBtnGradient}>
                 <Ionicons name="pencil-outline" size={12} color="#fff" />
                 <Text style={styles.editBtnText}>MODIFICA PROFILO</Text>
               </LinearGradient>
@@ -116,7 +105,6 @@ export default function Profile() {
           )}
         </View>
 
-        {/* Email */}
         <View style={styles.infoCard}>
           <Text style={styles.infoLabel}>EMAIL</Text>
           <Text style={styles.infoValue}>{utente?.Email}</Text>
@@ -124,7 +112,6 @@ export default function Profile() {
 
         <View style={styles.linea} />
 
-        {/* Menu */}
         {tipo === "privato" && (
           <>
             <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/mie-richieste")}>
@@ -187,7 +174,6 @@ export default function Profile() {
 
         <View style={styles.linea} />
 
-        {/* Logout */}
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={16} color="#333" />
           <Text style={styles.logoutText}>ESCI</Text>
@@ -222,14 +208,16 @@ const styles = StyleSheet.create({
   colorLine: { height: 2, borderRadius: 1 },
   avatarSection: { alignItems: "center", paddingVertical: 32, paddingHorizontal: 24 },
   avatarWrapper: { position: "relative", marginBottom: 16 },
+  avatarFallback: { width: 90, height: 90, borderRadius: 45, alignItems: "center", justifyContent: "center" },
+  avatarInitial: { color: "#fff", fontSize: 38, fontWeight: "900" },
   avatarBadge: { position: "absolute", bottom: 4, right: 4, width: 18, height: 18, borderRadius: 9, backgroundColor: "#000", alignItems: "center", justifyContent: "center" },
   avatarBadgeDot: { width: 11, height: 11, borderRadius: 6, backgroundColor: "#39FF6E" },
   nomeUtente: { color: "#fff", fontSize: 26, fontWeight: "800", letterSpacing: -0.5, marginBottom: 8 },
   tipoBadge: { borderWidth: 1, borderColor: "#333", borderRadius: 100, paddingVertical: 5, paddingHorizontal: 16, marginBottom: 12 },
   tipoText: { color: "#666", fontSize: 10, letterSpacing: 4, fontWeight: "600" },
-  bioText: { color: "#ffffff", fontSize: 14, textAlign: "center", paddingHorizontal: 40, lineHeight: 21 },
-  bioEmpty: { color: "#ffffff", fontSize: 13, textAlign: "center", fontStyle: "italic" },
-  editBtn: { borderRadius: 100, overflow: "hidden", marginTop: 18, shadowColor: "#FF1493", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 6 },
+  bioText: { color: "#fff", fontSize: 14, textAlign: "center", paddingHorizontal: 40, lineHeight: 21 },
+  bioEmpty: { color: "#333", fontSize: 13, textAlign: "center", fontStyle: "italic" },
+  editBtn: { borderRadius: 100, overflow: "hidden", marginTop: 18 },
   editBtnGradient: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 10, paddingHorizontal: 22 },
   editBtnText: { color: "#fff", fontSize: 10, letterSpacing: 3, fontWeight: "700" },
   infoCard: { paddingHorizontal: 24, paddingVertical: 20 },
@@ -240,8 +228,8 @@ const styles = StyleSheet.create({
   menuLeft: { flexDirection: "row", alignItems: "center", gap: 14 },
   menuIconBox: { width: 40, height: 40, borderRadius: 12, backgroundColor: "#0f0f0f", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#1a1a1a" },
   menuItemText: { color: "#fff", fontSize: 13, letterSpacing: 2, fontWeight: "500" },
-  logoutBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginHorizontal: 24, marginTop: 24, borderWidth: 1, borderColor: "#7c7c7c", borderRadius: 14, paddingVertical: 16 },
-  logoutText: { color: "#7c7c7c", fontSize: 12, letterSpacing: 4 },
+  logoutBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginHorizontal: 24, marginTop: 24, borderWidth: 1, borderColor: "#222", borderRadius: 14, paddingVertical: 16 },
+  logoutText: { color: "#555", fontSize: 12, letterSpacing: 4 },
   footer: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 24, marginTop: 32 },
   footerText: { color: "#222", fontSize: 10, letterSpacing: 3 },
   footerDots: { flexDirection: "row", gap: 6 },
