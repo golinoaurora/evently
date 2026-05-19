@@ -52,7 +52,7 @@ export default function BottomBar({ paginaAttiva }) {
       </TouchableOpacity>
 
       {/* Cerca */}
-      <TouchableOpacity style={styles.btn} onPress={() => router.push("/home")}>
+      <TouchableOpacity style={styles.btn} onPress={() => router.push("/cerca")}>
         <Ionicons
           name={paginaAttiva === "cerca" ? "search" : "search-outline"}
           size={24}

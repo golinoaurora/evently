@@ -10,7 +10,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -27,13 +26,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [tipo, setTipo] = useState("");
-  const [luoghi, setLuoghi] = useState([]);
   const [categoriaAttiva, setCategoriaAttiva] = useState("TUTTI");
-  const [ricerca, setRicerca] = useState("");
-  const [filtroData, setFiltroData] = useState("tutti");
-  const [filtroPrezzo, setFiltroPrezzo] = useState("tutti");
-  const [filtroLuogo, setFiltroLuogo] = useState("tutti");
-  const [mostraFiltri, setMostraFiltri] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -44,7 +37,7 @@ export default function Home() {
 
   useEffect(() => {
     applicaFiltri();
-  }, [eventi, ricerca, filtroData, filtroPrezzo, filtroLuogo, categoriaAttiva]);
+  }, [eventi, categoriaAttiva]);
 
   async function caricaTipo() {
     const t = await AsyncStorage.getItem("tipo");
@@ -57,8 +50,6 @@ export default function Home() {
       const data = await response.json();
       if (data.success) {
         setEventi(data.eventi);
-        const luoghiUnici = [...new Set(data.eventi.map(e => e.NomeLuogo))];
-        setLuoghi(luoghiUnici);
       } else {
         setError("Errore nel caricamento eventi");
       }
@@ -71,26 +62,9 @@ export default function Home() {
 
   function applicaFiltri() {
     let filtrati = [...eventi];
-    if (ricerca.trim() !== "") {
-      filtrati = filtrati.filter(e => e.Titolo.toLowerCase().includes(ricerca.toLowerCase()));
-    }
     if (categoriaAttiva !== "TUTTI") {
       filtrati = filtrati.filter(e => e.Categoria?.toUpperCase() === categoriaAttiva);
     }
-    const oggi = new Date();
-    oggi.setHours(0, 0, 0, 0);
-    if (filtroData === "oggi") {
-      filtrati = filtrati.filter(e => new Date(e.DataEvento).toDateString() === oggi.toDateString());
-    } else if (filtroData === "settimana") {
-      const fine = new Date(oggi);
-      fine.setDate(oggi.getDate() + 7);
-      filtrati = filtrati.filter(e => { const d = new Date(e.DataEvento); return d >= oggi && d <= fine; });
-    } else if (filtroData === "mese") {
-      filtrati = filtrati.filter(e => { const d = new Date(e.DataEvento); return d.getMonth() === oggi.getMonth() && d.getFullYear() === oggi.getFullYear(); });
-    }
-    if (filtroPrezzo === "gratuito") filtrati = filtrati.filter(e => e.Prezzo == 0);
-    else if (filtroPrezzo === "pagamento") filtrati = filtrati.filter(e => e.Prezzo > 0);
-    if (filtroLuogo !== "tutti") filtrati = filtrati.filter(e => e.NomeLuogo === filtroLuogo);
     setEventiFiltrati(filtrati);
   }
 
@@ -107,26 +81,19 @@ export default function Home() {
         onPress={() => router.push(`/event-detail?id=${item.ID}`)}
         activeOpacity={0.85}
       >
-        {/* Foto o gradiente */}
         {hasImage ? (
-          <Image
-            source={{ uri: item.ImageUrl }}
-            style={styles.cardImage}
-            resizeMode="cover"
-          />
+          <Image source={{ uri: item.ImageUrl }} style={styles.cardImage} resizeMode="cover" />
         ) : (
           <LinearGradient
-            colors={index % 2 === 0 ? ["#FF1493", "#C800FF"] : ["#1E50FF", "#39FF6E"]}
+            colors={index % 2 === 0 ? ["#FF1493", "#C800FF"] : ["#1E50FF", "#C800FF"]}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
             style={styles.cardImage}
           />
         )}
-
-        {/* Overlay con info */}
         <LinearGradient
-          colors={["transparent", "rgba(0,0,0,0.95)"]}
+          colors={["rgba(0,0,0,0.2)", "rgba(0,0,0,0.85)"]}
           style={styles.cardOverlay}
         >
-          {/* Badge top */}
           <View style={styles.cardBadgeRow}>
             {item.Categoria && (
               <View style={styles.badgeCategoria}>
@@ -143,25 +110,22 @@ export default function Home() {
               </View>
             )}
           </View>
-
-          {/* Info bottom */}
           <View style={styles.cardInfo}>
             <View style={styles.cardDateInline}>
               <Text style={styles.cardGiorno}>{giorno}</Text>
-              <Text style={styles.cardMese}>{mese}</Text>
+              <Text style={styles.cardMese}> {mese}</Text>
             </View>
-            <Text style={styles.cardTitolo}>{item.Titolo}</Text>
+            <Text style={styles.cardTitolo} numberOfLines={1}>{item.Titolo}</Text>
             <View style={styles.cardLuogoRow}>
               <View style={styles.cardLuogoDot} />
-              <Text style={styles.cardLuogo}>{item.NomeLuogo} · {item.Citta}</Text>
+              <Text style={styles.cardLuogo} numberOfLines={1}>{item.NomeLuogo} · {item.Citta}</Text>
             </View>
             <View style={styles.cardBottom}>
               <Text style={styles.cardOra}>🕐 {item.Ora?.slice(0, 5)}</Text>
               <Text style={styles.cardPosti}>
-                <Text style={{ color: "#39FF6E" }}>
+                <Text style={{ color: "#39FF6E", fontWeight: "700" }}>
                   {Math.max(0, item.MaxPartecipanti - (item.Iscritti || 0))}
-                </Text>
-                {" "}posti
+                </Text>{" "}posti
               </Text>
             </View>
           </View>
@@ -188,76 +152,23 @@ export default function Home() {
         </View>
       </View>
 
-      <View style={styles.searchRow}>
-        <View style={styles.searchBox}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Cerca eventi..."
-            placeholderTextColor="#2a2a2a"
-            value={ricerca}
-            onChangeText={(t) => { setRicerca(t); applicaFiltri(); }}
-          />
-        </View>
-        <TouchableOpacity
-          style={[styles.filtriBtn, mostraFiltri && styles.filtriBtnActive]}
-          onPress={() => setMostraFiltri(!mostraFiltri)}
-        >
-          <Text style={styles.filtriBtnIcon}>⚙</Text>
-        </TouchableOpacity>
-      </View>
-
-      {mostraFiltri && (
-        <View style={styles.filtriPanel}>
-          <Text style={styles.filtroLabel}>DATA</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtroRow}>
-            {["tutti", "oggi", "settimana", "mese"].map((f) => (
-              <TouchableOpacity key={f} style={[styles.chip, filtroData === f && styles.chipActive]} onPress={() => setFiltroData(f)}>
-                <Text style={[styles.chipText, filtroData === f && styles.chipTextActive]}>
-                  {f === "tutti" ? "TUTTI" : f === "oggi" ? "OGGI" : f === "settimana" ? "SETTIMANA" : "MESE"}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-          <Text style={styles.filtroLabel}>PREZZO</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtroRow}>
-            {["tutti", "gratuito", "pagamento"].map((f) => (
-              <TouchableOpacity key={f} style={[styles.chip, filtroPrezzo === f && styles.chipActive]} onPress={() => setFiltroPrezzo(f)}>
-                <Text style={[styles.chipText, filtroPrezzo === f && styles.chipTextActive]}>
-                  {f === "tutti" ? "TUTTI" : f === "gratuito" ? "GRATUITO" : "A PAGAMENTO"}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-          <Text style={styles.filtroLabel}>LUOGO</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtroRow}>
-            <TouchableOpacity style={[styles.chip, filtroLuogo === "tutti" && styles.chipActive]} onPress={() => setFiltroLuogo("tutti")}>
-              <Text style={[styles.chipText, filtroLuogo === "tutti" && styles.chipTextActive]}>TUTTI</Text>
+      <View style={styles.categorieWrapper}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categorieContent}>
+          {CATEGORIE.map((cat) => (
+            <TouchableOpacity key={cat} onPress={() => setCategoriaAttiva(cat)} style={{ borderRadius: 100, overflow: "hidden" }}>
+              {categoriaAttiva === cat ? (
+                <LinearGradient colors={["#FF1493", "#C800FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.categoriaGradient}>
+                  <Text style={styles.categoriaTextActive}>{cat}</Text>
+                </LinearGradient>
+              ) : (
+                <View style={styles.categoriaDefault}>
+                  <Text style={styles.categoriaText}>{cat}</Text>
+                </View>
+              )}
             </TouchableOpacity>
-            {luoghi.map((l) => (
-              <TouchableOpacity key={l} style={[styles.chip, filtroLuogo === l && styles.chipActive]} onPress={() => setFiltroLuogo(l)}>
-                <Text style={[styles.chipText, filtroLuogo === l && styles.chipTextActive]}>{l.toUpperCase()}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categorieRow} contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}>
-        {CATEGORIE.map((cat) => (
-          <TouchableOpacity key={cat} onPress={() => setCategoriaAttiva(cat)} style={styles.categoriaItem}>
-            {categoriaAttiva === cat ? (
-              <LinearGradient colors={["#FF1493", "#C800FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.categoriaGradient}>
-                <Text style={styles.categoriaTextActive}>{cat}</Text>
-              </LinearGradient>
-            ) : (
-              <View style={styles.categoriaDefault}>
-                <Text style={styles.categoriaText}>{cat}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+          ))}
+        </ScrollView>
+      </View>
 
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Eventi in programma</Text>
@@ -287,61 +198,47 @@ export default function Home() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000" },
-  glowPink: { position: "absolute", top: -60, right: -40, width: 180, height: 180, borderRadius: 90, backgroundColor: "rgba(255,20,147,0.08)" },
-  glowBlue: { position: "absolute", top: 200, left: -60, width: 160, height: 160, borderRadius: 80, backgroundColor: "rgba(30,80,255,0.06)" },
+  glowPink: { position: "absolute", top: -60, right: -40, width: 200, height: 200, borderRadius: 100, backgroundColor: "rgba(255,20,147,0.15)" },
+  glowBlue: { position: "absolute", top: 200, left: -60, width: 180, height: 180, borderRadius: 90, backgroundColor: "rgba(30,80,255,0.12)" },
   header: { paddingTop: 56, paddingHorizontal: 20, paddingBottom: 16 },
   headerTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  headerSub: { color: "#333", fontSize: 12, letterSpacing: 1, marginBottom: 2 },
-  headerTitle: { color: "#fff", fontSize: 32, fontWeight: "900", letterSpacing: -1 },
+  headerSub: { color: "#777", fontSize: 13, letterSpacing: 1, marginBottom: 2 },
+  headerTitle: { color: "#fff", fontSize: 40, fontWeight: "900", letterSpacing: -2 },
   headerAccent: { color: "#FF1493" },
-  notifBtn: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: "#1a1a1a", alignItems: "center", justifyContent: "center", position: "relative" },
-  notifIcon: { fontSize: 18 },
-  notifDot: { position: "absolute", top: 6, right: 6, width: 8, height: 8, borderRadius: 4, backgroundColor: "#39FF6E", borderWidth: 1.5, borderColor: "#000" },
-  searchRow: { flexDirection: "row", paddingHorizontal: 20, gap: 10, marginBottom: 16 },
-  searchBox: { flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: "#0a0a0a", borderWidth: 1, borderColor: "#1a1a1a", borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, gap: 8 },
-  searchIcon: { fontSize: 14 },
-  searchInput: { flex: 1, color: "#fff", fontSize: 13 },
-  filtriBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: "#0a0a0a", borderWidth: 1, borderColor: "#1a1a1a", alignItems: "center", justifyContent: "center" },
-  filtriBtnActive: { borderColor: "#FF1493" },
-  filtriBtnIcon: { fontSize: 18, color: "#555" },
-  filtriPanel: { backgroundColor: "#050505", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#111", marginBottom: 8 },
-  filtroLabel: { color: "#333", fontSize: 9, letterSpacing: 3, paddingHorizontal: 20, marginBottom: 8, marginTop: 6 },
-  filtroRow: { paddingHorizontal: 20, marginBottom: 4 },
-  chip: { borderWidth: 1, borderColor: "#1a1a1a", borderRadius: 100, paddingVertical: 5, paddingHorizontal: 14, marginRight: 8 },
-  chipActive: { borderColor: "#FF1493", backgroundColor: "rgba(255,20,147,0.1)" },
-  chipText: { color: "#333", fontSize: 9, letterSpacing: 2 },
-  chipTextActive: { color: "#FF1493" },
-  categorieRow: { marginBottom: 16 },
-  categoriaItem: { borderRadius: 100, overflow: "hidden" },
-  categoriaGradient: { paddingVertical: 7, paddingHorizontal: 16, borderRadius: 100 },
-  categoriaDefault: { paddingVertical: 7, paddingHorizontal: 16, borderRadius: 100, borderWidth: 1, borderColor: "#1a1a1a" },
-  categoriaText: { color: "#333", fontSize: 10, letterSpacing: 2, fontWeight: "500" },
-  categoriaTextActive: { color: "#fff", fontSize: 10, letterSpacing: 2, fontWeight: "700" },
-  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, marginBottom: 12 },
-  sectionTitle: { color: "#fff", fontSize: 16, fontWeight: "700", letterSpacing: -0.3 },
-  sectionCount: { color: "#333", fontSize: 11, letterSpacing: 1 },
+  notifBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: "#FF149340", alignItems: "center", justifyContent: "center", position: "relative", backgroundColor: "#0a0a0a" },
+  notifIcon: { fontSize: 20 },
+  notifDot: { position: "absolute", top: 6, right: 6, width: 10, height: 10, borderRadius: 5, backgroundColor: "#39FF6E", borderWidth: 2, borderColor: "#000" },
+  categorieWrapper: { paddingVertical: 6, marginBottom: 16 },
+  categorieContent: { paddingHorizontal: 20, gap: 8, alignItems: "center" },
+  categoriaGradient: { paddingVertical: 9, paddingHorizontal: 20, borderRadius: 100 },
+  categoriaDefault: { paddingVertical: 9, paddingHorizontal: 20, borderRadius: 100, borderWidth: 1, borderColor: "#333" },
+  categoriaText: { color: "#666", fontSize: 11, letterSpacing: 2, fontWeight: "600" },
+  categoriaTextActive: { color: "#fff", fontSize: 11, letterSpacing: 2, fontWeight: "800" },
+  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, marginBottom: 14 },
+  sectionTitle: { color: "#fff", fontSize: 18, fontWeight: "800", letterSpacing: -0.5 },
+  sectionCount: { color: "#FF1493", fontSize: 12, letterSpacing: 1, fontWeight: "600" },
   lista: { paddingHorizontal: 20, paddingBottom: 100 },
-  card: { borderRadius: 16, marginBottom: 16, overflow: "hidden", height: 200 },
+  card: { borderRadius: 20, marginBottom: 20, overflow: "hidden", height: 220, borderWidth: 1, borderColor: "#FF149330", shadowColor: "#FF1493", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 8 },
   cardImage: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, width: "100%", height: "100%" },
-  cardOverlay: { flex: 1, justifyContent: "space-between", padding: 14 },
+  cardOverlay: { flex: 1, justifyContent: "space-between", padding: 16 },
   cardBadgeRow: { flexDirection: "row", gap: 6 },
-  badgeCategoria: { backgroundColor: "rgba(0,0,0,0.6)", borderRadius: 100, paddingVertical: 3, paddingHorizontal: 8 },
-  badgeCategoriaText: { color: "#fff", fontSize: 7, letterSpacing: 1 },
-  badgeFree: { backgroundColor: "#39FF6E", borderRadius: 100, paddingVertical: 3, paddingHorizontal: 10 },
-  badgeFreeText: { color: "#000", fontSize: 8, fontWeight: "700", letterSpacing: 2 },
-  badgePrice: { backgroundColor: "#1E50FF", borderRadius: 100, paddingVertical: 3, paddingHorizontal: 10 },
-  badgePriceText: { color: "#fff", fontSize: 8, fontWeight: "700", letterSpacing: 1 },
-  cardInfo: { gap: 4 },
-  cardDateInline: { flexDirection: "row", alignItems: "baseline", gap: 4 },
-  cardGiorno: { color: "#fff", fontSize: 22, fontWeight: "900", lineHeight: 24 },
-  cardMese: { color: "#FF1493", fontSize: 10, letterSpacing: 2, fontWeight: "700" },
-  cardTitolo: { color: "#fff", fontSize: 18, fontWeight: "700", letterSpacing: -0.3 },
+  badgeCategoria: { borderRadius: 100, paddingVertical: 7, paddingHorizontal: 14, borderWidth: 1, borderColor: "#333", backgroundColor: "#1a1a1a", alignItems: "center", justifyContent: "center" },
+  badgeCategoriaText: { color: "#aaa", fontSize: 10, letterSpacing: 2, fontWeight: "600" },
+  badgeFree: { backgroundColor: "#39FF6E", borderRadius: 100, paddingVertical: 7, paddingHorizontal: 14, alignItems: "center", justifyContent: "center" },
+  badgeFreeText: { color: "#000", fontSize: 10, fontWeight: "800", letterSpacing: 2 },
+  badgePrice: { backgroundColor: "#FF1493", borderRadius: 100, paddingVertical: 7, paddingHorizontal: 14, alignItems: "center", justifyContent: "center", shadowColor: "#FF1493", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.5, shadowRadius: 10, elevation: 8 },
+  badgePriceText: { color: "#fff", fontSize: 13, fontWeight: "900", letterSpacing: 1 },
+  cardInfo: { gap: 5 },
+  cardDateInline: { flexDirection: "row", alignItems: "baseline" },
+  cardGiorno: { color: "#fff", fontSize: 28, fontWeight: "900", lineHeight: 30 },
+  cardMese: { color: "#FF1493", fontSize: 13, letterSpacing: 2, fontWeight: "800" },
+  cardTitolo: { color: "#fff", fontSize: 22, fontWeight: "800", letterSpacing: -0.5 },
   cardLuogoRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  cardLuogoDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: "#39FF6E" },
-  cardLuogo: { color: "rgba(255,255,255,0.6)", fontSize: 11 },
+  cardLuogoDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#39FF6E" },
+  cardLuogo: { color: "rgba(255,255,255,0.85)", fontSize: 13, fontWeight: "500" },
   cardBottom: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  cardOra: { color: "rgba(255,255,255,0.5)", fontSize: 11 },
-  cardPosti: { color: "rgba(255,255,255,0.5)", fontSize: 11 },
+  cardOra: { color: "rgba(255,255,255,0.8)", fontSize: 13, fontWeight: "500" },
+  cardPosti: { color: "rgba(255,255,255,0.8)", fontSize: 13, fontWeight: "500" },
   errorText: { color: "#FF1493", textAlign: "center", marginTop: 40 },
-  emptyText: { color: "#333", textAlign: "center", marginTop: 60, fontSize: 13, letterSpacing: 2 },
+  emptyText: { color: "#666", textAlign: "center", marginTop: 60, fontSize: 14, letterSpacing: 2 },
 });
