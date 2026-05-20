@@ -52,6 +52,8 @@ CREATE TABLE Evento (
   Ora time NOT NULL,
   Prezzo decimal(10,0) NOT NULL,
   MaxPartecipanti int(10) NOT NULL,
+  Categoria varchar(50) DEFAULT 'ALTRO' NULL,
+  ImageUrl varchar(500) NULL,
   IDPrivato int(10),
   IDLuogo int(10),
   IDLocale int(10),
@@ -68,6 +70,7 @@ CREATE TABLE RichiestaEvento (
   NumeroPartecipanti int(10) NOT NULL,
   Messaggio varchar(255),
   Stato enum('in_attesa','approvato_admin','approvato','rifiutato') DEFAULT 'in_attesa' NOT NULL,
+  Categoria varchar(50) DEFAULT 'ALTRO' NULL,
   IDLuogo int(10),
   IDPrivato int(10),
   FOREIGN KEY (IDLuogo) REFERENCES Luogo(ID) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -101,11 +104,3 @@ CREATE TABLE Notifica (
   FOREIGN KEY (IDUtente) REFERENCES Utente(ID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Admin predefiniti
-INSERT INTO Utente (Nome, Email, PasswordUtente) VALUES ('Aurora', 'aurora@evently.it', '$2y$10$M7oMqTyzFgMSvjJQJLRuee1mYaqyeJCJkwNCFTAvZkAwRJGgcg7E2');
-SET @id1 = LAST_INSERT_ID();
-INSERT INTO Admin (IDUtente) VALUES (@id1);
-
-INSERT INTO Utente (Nome, Email, PasswordUtente) VALUES ('Noemi', 'noemi@evently.it', '$2y$10$M7oMqTyzFgMSvjJQJLRuee1mYaqyeJCJkwNCFTAvZkAwRJGgcg7E2');
-SET @id2 = LAST_INSERT_ID();
-INSERT INTO Admin (IDUtente) VALUES (@id2);
